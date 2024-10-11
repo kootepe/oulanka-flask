@@ -2,7 +2,7 @@ import json
 import pytz
 import time
 import uuid
-from project.layout import create_layout
+from project.log_layout import create_layout
 from project.push_point import ifdb_push
 from datetime import datetime as dt
 from dash import Dash, dcc, ctx, html, Input, Output, State
