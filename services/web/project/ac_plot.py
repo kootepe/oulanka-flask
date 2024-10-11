@@ -5,6 +5,7 @@ import json
 from datetime import datetime, timedelta
 
 from project.tools.influxdb_funcs import read_ifdb
+from project.ac_layout import create_layout
 from project.tools.create_graph import create_plot
 from project.tools.measurement import MeasurementCycle
 
@@ -43,26 +44,7 @@ def ac_plot(flask_app):
 
     # Initialize Dash app
     app = Dash(__name__, server=flask_app, url_base_pathname="/dashing/")
-
-    app.layout = html.Div(
-        [
-            dcc.Store(id="stored-index", data=0),
-            dcc.Store(id="stored-chamber", data="All"),
-            html.Div(id="chamber-buttons"),
-            html.Div(id="measurement-info", style={"padding": "20px 0"}),
-            html.Button("Previous", id="prev-button", n_clicks=0),
-            html.Button("Next", id="next-button", n_clicks=0),
-            html.Div(
-                [
-                    html.Button("Find lagtime", id="find-max", n_clicks=0),
-                    html.Button("Delete lagtime", id="del-lagtime", n_clicks=0),
-                ]
-            ),
-            dcc.Graph(id="ch4-graph"),
-            dcc.Graph(id="co2-graph"),
-            html.Div(id="output"),
-        ]
-    )
+    app.layout = create_layout()
 
     @app.callback(
         Output("chamber-buttons", "children"),
