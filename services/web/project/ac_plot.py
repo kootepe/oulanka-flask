@@ -134,9 +134,7 @@ def ac_plot(flask_app):
         measurement = chamber_measurements[index]
 
         # Ensure measurement data is loaded
-        measurement.data = read_ifdb(
-            ifdb_dict, meas_dict, start_ts=measurement.start, stop_ts=measurement.end
-        )
+        measurement.get_data(ifdb_dict)
         measurement.data.set_index("datetime", inplace=True)
         measurement.data.index = pd.to_datetime(measurement.data.index)
         measurement.data = measurement.data.tz_localize(tz)
