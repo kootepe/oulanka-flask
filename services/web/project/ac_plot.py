@@ -51,6 +51,22 @@ def ac_plot(flask_app):
         Input("output", "children"),
     )
     def generate_buttons(_):
+        """
+        Generate a button for each chamber.
+
+        Parameters
+        ----------
+        _ :
+
+
+        Returns
+        -------
+        buttons : [html.Button, ...]
+            list of html.Button labeled with chamber IDs
+
+
+
+        """
         buttons = [
             html.Button(
                 "All",
