@@ -5,7 +5,7 @@ import json
 from datetime import datetime, timedelta
 
 from project.ac_layout import create_layout
-from project.tools.create_graph import create_plot
+from project.tools.create_graph import create_plot, mk_lag_graph
 from project.tools.measurement import MeasurementCycle
 
 
@@ -86,6 +86,7 @@ def ac_plot(flask_app):
     @app.callback(
         Output("ch4-graph", "figure"),
         Output("co2-graph", "figure"),
+        Output("lag-graph", "figure"),
         Output("measurement-info", "children"),
         Output("stored-index", "data"),
         Output("stored-chamber", "data"),
@@ -143,8 +144,9 @@ def ac_plot(flask_app):
 
         fig_ch4 = create_plot(measurement, "CH4", "Methane")
         fig_co2 = create_plot(measurement, "CO2", "Carbon Dioxide", color_key="green")
+        lag_graph = mk_lag_graph(chamber_measurements, ifdb_dict)
         measurement_info = f"Measurement {index + 1}/{len(chamber_measurements)} - Date: {measurement.start.date()}"
 
-        return fig_ch4, fig_co2, measurement_info, index, chamber
+        return fig_ch4, fig_co2, lag_graph, measurement_info, index, chamber
 
     return app

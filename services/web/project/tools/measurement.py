@@ -37,3 +37,19 @@ class MeasurementCycle:
         self.data = read_ifdb(
             ifdb_dict, meas_dict, start_ts=self.start, stop_ts=self.end
         )
+
+    def get_max(self, ifdb_dict):
+        tz = "Europe/Helsinki"
+        meas_dict = {"measurement": "AC LICOR", "fields": "CH4,CO2"}
+        end = self.open + pd.Timedelta(minutes=2)
+        data = read_ifdb(ifdb_dict, meas_dict, start_ts=self.open, stop_ts=end)
+        if data is None:
+            self.lagtime_index = None
+            self.lagtime_s = None
+            return
+        if not data.empty:
+            data.set_index("datetime", inplace=True)
+            data.index = pd.to_datetime(data.index)
+            data = data.tz_localize(tz)
+            self.lagtime_index = data["CH4"].idxmax()
+            self.lagtime_s = (self.lagtime_index - self.open).total_seconds()

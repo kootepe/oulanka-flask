@@ -1,4 +1,6 @@
 import plotly.graph_objs as go
+import plotly.express as px
+import pandas as pd
 
 
 def create_plot(measurement, gas, title, color_key="blue"):
@@ -68,3 +70,70 @@ def create_plot(measurement, gas, title, color_key="blue"):
     )
 
     return fig
+
+
+def mk_lag_graph(measurements, ifdb_dict):
+    # Extract data from each measurement and store in a list of tuples
+    [m.get_max(ifdb_dict) for m in measurements]
+    data = [(m.open, m.lagtime_s, m.id) for m in measurements]
+
+    # Create a pandas DataFrame from the list
+    df = pd.DataFrame(data, columns=["open", "lagtime", "id"]).set_index("open")
+
+    # Generate a scatter plot with Plotly Graph Objects
+    color_map = create_color_mapping(df, "id")
+    colors = [color_map[val] for val in df["id"]]
+    trace_data = go.Scatter(
+        x=df.index,
+        y=df["lagtime"],
+        mode="markers",
+        name="Lag time",
+        marker=dict(
+            color=colors,
+            # symbol="x-thin",
+            # size=5,
+            # line=dict(color=color_dict.get(color_key), width=1),
+        ),
+    )
+    layout = go.Layout(
+        xaxis_title="Open Time",
+        yaxis_title="Lag Time (s)",
+        template="plotly_white",
+        # width=1000,
+        # height=300,
+        title={
+            "text": "Scatter Plot of Lag Time vs. Open Time",
+            # "x": 0.33,  # Horizontal position of the title (0 - left, 0.5 - center, 1 - right)
+            # "y": 0.82,  # Vertical position of the title, with 1 being the top
+            # "xanchor": "center",  # Anchoring the title horizontally
+            # "yanchor": "top",  # Anchoring the title vertically
+        },
+        margin=dict(
+            l=20,
+            r=20,
+            t=40,
+            b=20,
+        ),
+        xaxis=dict(type="date"),
+    )
+    fig = go.Figure(
+        data=[
+            trace_data,
+        ],
+        layout=layout,
+    )
+
+    return fig
+
+
+def create_color_mapping(df, column_name):
+    # Get unique values from the column
+    unique_values = df[column_name].unique()
+
+    # Generate a color map based on the number of unique values
+    color_map = (
+        px.colors.qualitative.Plotly
+    )  # You can choose another color palette if you prefer
+    colors = {val: color_map[i % len(color_map)] for i, val in enumerate(unique_values)}
+
+    return colors
