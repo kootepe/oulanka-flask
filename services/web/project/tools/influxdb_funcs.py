@@ -145,7 +145,6 @@ def read_ifdb(ifdb_dict, meas_dict, start_ts=None, stop_ts=None):
 
         df = df.rename(columns={"_time": "datetime"})
         df["datetime"] = df.datetime.dt.tz_convert(None)
-        df = add_cols_to_ifdb_q(df, meas_dict)
         logger.debug(f"\n{df}")
         return df
 

@@ -42,10 +42,9 @@ def create_plot(measurement, gas, title, color_key="blue"):
     )
 
     layout = go.Layout(
-        # title=f"Chamber {measurement.id} {title} Measurement {measurement.close}",
         yaxis_title="Value",
-        width=1000,
-        height=300,
+        # width=1000,
+        # height=300,
         title={
             "text": f"Chamber {measurement.id} {title} Measurement {measurement.close}",
             # "x": 0.33,  # Horizontal position of the title (0 - left, 0.5 - center, 1 - right)
@@ -54,10 +53,10 @@ def create_plot(measurement, gas, title, color_key="blue"):
             # "yanchor": "top",  # Anchoring the title vertically
         },
         margin=dict(
-            l=20,  # Left margin
-            r=20,  # Right margin
-            t=40,  # Top margin (reduce this if you don't need extra space for the title)
-            b=20,  # Bottom margin
+            l=20,
+            r=20,
+            t=40,
+            b=20,
         ),
         xaxis=dict(type="date"),
     )
