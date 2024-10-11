@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filter Measurements</title>
+</head>
+<body>
+    <h1>Filter Measurements</h1>
+    <form action="/filter" method="post">
+        <label for="start_date">Start Date:</label>
+        <input type="date" id="start_date" name="start_date">
+        <br><br>
+        <label for="end_date">End Date:</label>
+        <input type="date" id="end_date" name="end_date">
+        <br><br>
+        <label for="instrument">Instrument:</label>
+        <select id="instrument" name="instrument">
+            <option value="All">All</option>
+            {% for instrument in instruments %}
+            <option value="{{ instrument }}">{{ instrument }}</option>
+            {% endfor %}
+        </select>
+        <br><br>
+        <button type="submit">Filter</button>
+    </form>
+</body>
+</html>
+

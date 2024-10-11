@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input and Submit Example</title>
+    <style>
+        body {
+            font-family: monospace;
+            margin: 0;
+            padding: 10px;
+        }
+        .header {
+        }
+        .wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Two columns */
+            gap: 10px;
+            width: 75%;
+            <!-- padding-top: 30px; /* Create space for the submit button */ -->
+        }
+        .additional-inputs input {
+            margin-bottom: 5px;
+        }
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .container {
+            display: flex;
+            align-items: center;
+        }
+        h2 {
+            margin: 2px;
+            margin-top: 5px;
+            margin-left: 0px;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+        }
+        .input-group div {
+            margin-right: 10px;
+        }
+        .input-group input {
+            margin-right: 10px;
+            width: 150px;
+        }
+        .input-group input.note {
+            margin-right: 10px;
+            width: 150px;
+        }
+        .input-group input.time {
+            margin-right: 10px;
+            width: 80px;
+        }
+        .input-group input.snow{
+            margin-right: 10px;
+            width: 100px;
+        }
+        .submit-all {
+            position: relative;
+            margin-bottom: 5px;
+        }
+        .invalid {
+            border-color: red;
+        }
+    </style>
+</head>
+<body>
+    <form action="/submit_times" method="post" onsubmit="confirmSubmission(event)">
+        <div class="header">
+        <div>
+        <a href="/">Form selection</a>
+        </div>
+            <div class="submit-all">
+                <button type="submit" id="subBut" disabled="disabled">Submit All</button>
+            </div>
+            <div class="additional-inputs">
+              <div>Date YYMMDD:</div>
+                <input type="text" name="measurementDate" class="date" placeholder="Measurement date YYMMDD" class="number-only" maxlength=6>
+              <div>Name:</div>
+                <input type="text" name="measurerName" class="name" placeholder="Measurer name">
+              <div>LICOR ID:</div>
+                <input type="text" name="licorId" class="licorid number-only" class="number-only" placeholder="XXXXX" maxlength=5>
+                <!-- <input type="text" name="measurerName" placeholder="Measurer name"> -->
+                <!-- Add more inputs as needed -->
+            </div>
+        </div><!-- </div> -->
+        <div class="wrapper">
+            <div class="column">
+          <h2>Fen plots</h2>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot37:</div>
+                        <input type="text" name="time37" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 37:</div>-->
+                        <input type="text" name="snow37" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 37:</div>-->
+                        <input type="text" name="note37" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot38:</div>
+                        <input type="text" name="time38" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 38:</div>-->
+                        <input type="text" name="snow38" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 38:</div>-->
+                        <input type="text" name="note38" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot39:</div>
+                        <input type="text" name="time39" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 39:</div>-->
+                        <input type="text" name="snow39" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 39:</div>-->
+                        <input type="text" name="note39" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot40:</div>
+                        <input type="text" name="time40" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 40:</div>-->
+                        <input type="text" name="snow40" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 40:</div>-->
+                        <input type="text" name="note40" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot41:</div>
+                        <input type="text" name="time41" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 41:</div>-->
+                        <input type="text" name="snow41" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 41:</div>-->
+                        <input type="text" name="note41" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot42:</div>
+                        <input type="text" name="time42" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 42:</div>-->
+                        <input type="text" name="snow42" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 42:</div>-->
+                        <input type="text" name="note42" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot43:</div>
+                        <input type="text" name="time43" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 43:</div>-->
+                        <input type="text" name="snow43" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 43:</div>-->
+                        <input type="text" name="note43" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot44:</div>
+                        <input type="text" name="time44" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 44:</div>-->
+                        <input type="text" name="snow44" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 44:</div>-->
+                        <input type="text" name="note44" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot45:</div>
+                        <input type="text" name="time45" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 45:</div>-->
+                        <input type="text" name="snow45" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 45:</div>-->
+                        <input type="text" name="note45" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot46:</div>
+                        <input type="text" name="time46" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 46:</div>-->
+                        <input type="text" name="snow46" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 46:</div>-->
+                        <input type="text" name="note46" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot47:</div>
+                        <input type="text" name="time47" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 47:</div>-->
+                        <input type="text" name="snow47" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 47:</div>-->
+                        <input type="text" name="note47" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot48:</div>
+                        <input type="text" name="time48" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 48:</div>-->
+                        <input type="text" name="snow48" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 48:</div>-->
+                        <input type="text" name="note48" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot49:</div>
+                        <input type="text" name="time49" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 49:</div>-->
+                        <input type="text" name="snow49" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 49:</div>-->
+                        <input type="text" name="note49" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot50:</div>
+                        <input type="text" name="time50" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 50:</div>-->
+                        <input type="text" name="snow50" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 50:</div>-->
+                        <input type="text" name="note50" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot51:</div>
+                        <input type="text" name="time51" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 51:</div>-->
+                        <input type="text" name="snow51" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 51:</div>-->
+                        <input type="text" name="note51" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot52:</div>
+                        <input type="text" name="time52" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 52:</div>-->
+                        <input type="text" name="snow52" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 52:</div>-->
+                        <input type="text" name="note52" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot53:</div>
+                        <input type="text" name="time53" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 53:</div>-->
+                        <input type="text" name="snow53" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 53:</div>-->
+                        <input type="text" name="note53" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot54:</div>
+                        <input type="text" name="time54" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 54:</div>-->
+                        <input type="text" name="snow54" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 54:</div>-->
+                        <input type="text" name="note54" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot55:</div>
+                        <input type="text" name="time55" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 55:</div>-->
+                        <input type="text" name="snow55" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 55:</div>-->
+                        <input type="text" name="note55" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot56:</div>
+                        <input type="text" name="time56" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 56:</div>-->
+                        <input type="text" name="snow56" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 56:</div>-->
+                        <input type="text" name="note56" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot57:</div>
+                        <input type="text" name="time57" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 57:</div>-->
+                        <input type="text" name="snow57" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 57:</div>-->
+                        <input type="text" name="note57" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot58:</div>
+                        <input type="text" name="time58" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 58:</div>-->
+                        <input type="text" name="snow58" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 58:</div>-->
+                        <input type="text" name="note58" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot59:</div>
+                        <input type="text" name="time59" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 59:</div>-->
+                        <input type="text" name="snow59" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 59:</div>-->
+                        <input type="text" name="note59" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot60:</div>
+                        <input type="text" name="time60" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 60:</div>-->
+                        <input type="text" name="snow60" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 60:</div>-->
+                        <input type="text" name="note60" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot61:</div>
+                        <input type="text" name="time61" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 61:</div>-->
+                        <input type="text" name="snow61" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 61:</div>-->
+                        <input type="text" name="note61" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot62:</div>
+                        <input type="text" name="time62" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 62:</div>-->
+                        <input type="text" name="snow62" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 62:</div>-->
+                        <input type="text" name="note62" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot63:</div>
+                        <input type="text" name="time63" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 63:</div>-->
+                        <input type="text" name="snow63" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 63:</div>-->
+                        <input type="text" name="note63" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot64:</div>
+                        <input type="text" name="time64" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 64:</div>-->
+                        <input type="text" name="snow64" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 64:</div>-->
+                        <input type="text" name="note64" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot65:</div>
+                        <input type="text" name="time65" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 65:</div>-->
+                        <input type="text" name="snow65" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 65:</div>-->
+                        <input type="text" name="note65" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot66:</div>
+                        <input type="text" name="time66" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 66:</div>-->
+                        <input type="text" name="snow66" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 66:</div>-->
+                        <input type="text" name="note66" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot67:</div>
+                        <input type="text" name="time67" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 67:</div>-->
+                        <input type="text" name="snow67" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 67:</div>-->
+                        <input type="text" name="note67" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot68:</div>
+                        <input type="text" name="time68" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 68:</div>-->
+                        <input type="text" name="snow68" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 68:</div>-->
+                        <input type="text" name="note68" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot69:</div>
+                        <input type="text" name="time69" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 69:</div>-->
+                        <input type="text" name="snow69" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 69:</div>-->
+                        <input type="text" name="note69" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot70:</div>
+                        <input type="text" name="time70" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 70:</div>-->
+                        <input type="text" name="snow70" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 70:</div>-->
+                        <input type="text" name="note70" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot71:</div>
+                        <input type="text" name="time71" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 71:</div>-->
+                        <input type="text" name="snow71" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 71:</div>-->
+                        <input type="text" name="note71" placeholder="Short note" class="note">
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot72:</div>
+                        <input type="text" name="time72" class="number-only time" placeholder="Time HHMM" maxlength=4>
+                        <!--<div>Snow 72:</div>-->
+                        <input type="text" name="snow72" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <!--<div>Note 72:</div>-->
+                        <input type="text" name="note72" placeholder="Short note" class="note">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <script>
+function isValidYYMMDD(timestamp) {
+    // Check if the input matches the YYMMDD format
+    if (!/^\d{6}$/.test(timestamp)) {
+        return false;
+    }
+
+    // Extract year, month, and day parts
+    const year = parseInt(timestamp.substring(0, 2), 10);
+    const month = parseInt(timestamp.substring(2, 4), 10);
+    const day = parseInt(timestamp.substring(4, 6), 10);
+
+    // Check if the month is valid (1-12)
+    if (month < 1 || month > 12) {
+        return false;
+    }
+
+    // Check if the day is valid for the given month
+    const daysInMonth = [31, (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+    if (day < 1 || day > daysInMonth[month - 1]) {
+        return false;
+    }
+
+    return true;
+}
+function isValidHHMM(value) {
+        // Check if the input is exactly 4 digits
+        if (!value) {
+            return true;
+        }
+
+        if (!/^\d{4}$/.test(value)) {
+            return false;
+        }
+
+        // Extract hours and minutes
+        const hours = parseInt(value.substring(0, 2), 10);
+        const minutes = parseInt(value.substring(2, 4), 10);
+
+        // Validate hours and minutes
+        if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+            return false;
+        }
+
+        return true;
+    }
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const top_inputs = document.querySelectorAll('.date');
+
+    top_inputs.forEach(tops => {
+      tops.addEventListener('focusout', (event) => {
+        const input = event.target.value;
+        const inputBox = event.target
+
+            if (isValidYYMMDD(input)) {
+                inputBox.classList.remove('invalid')
+            } else {
+                // warning.style.display = 'block';
+                inputBox.classList.add('invalid')
+                document.getElementById("subBut").disabled = true;
+            }
+        // disable submit button if there are any invalids
+        const invalids = document.querySelectorAll('.invalid');
+        if (invalids.length > 0) {
+          document.getElementById("subBut").disabled = true;
+        } else {
+          document.getElementById("subBut").disabled = false;
+        }
+        });
+      })
+    })
+
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const timeInputs = document.querySelectorAll('.time');
+
+    timeInputs.forEach(time => {
+      time.addEventListener('focusout', (event) => {
+        const input = event.target.value;
+        const inputBox = event.target
+
+            if (isValidHHMM(input)) {
+                inputBox.classList.remove('invalid')
+                document.getElementById("subBut").disabled = false;
+            } else {
+                // warning.style.display = 'block';
+                inputBox.classList.add('invalid')
+                document.getElementById("subBut").disabled = true;
+            }
+        // disable submit button if there are any invalids
+        const invalids = document.querySelectorAll('.invalid');
+        if (invalids.length > 0) {
+          document.getElementById("subBut").disabled = true;
+        } else {
+          document.getElementById("subBut").disabled = false;
+        }
+        });
+      })
+    })
+
+
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const numberOnlyInputs = document.querySelectorAll('.number-only');
+
+    numberOnlyInputs.forEach(input => {
+        input.addEventListener('input', (event) => {
+            const value = event.target.value;
+            if (!/^\d*$/.test(value)) {
+                event.target.value = value.replace(/[^\d.]/g, '');
+            }
+        });
+    });
+});
+  document.addEventListener("DOMContentLoaded", function() {
+      const inputs = Array.from(document.querySelectorAll("input"));
+      const lastInput = inputs[inputs.length - 1];
+      lastInput.addEventListener("keydown", function(event) {
+          if (event.key === "Tab" && !event.shiftKey) {
+              event.preventDefault();
+              inputs[0].focus();
+          }
+      });
+  });
+        function confirmSubmission(event) {
+            event.preventDefault(); // Prevent the default form submission
+            const confirmation = confirm("Are you sure you want to submit?");
+            if (confirmation) {
+                event.target.submit(); // Submit the form if confirmed
+            }
+        }
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const numberOnlyInputs = document.querySelectorAll('.number-only');
+
+    numberOnlyInputs.forEach(input => {
+        input.addEventListener('input', (event) => {
+            const value = event.target.value;
+            if (!/^\d*$/.test(value)) {
+                event.target.value = value.replace(/[^\d.]/g, '');
+            }
+        });
+    });
+});
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input and Submit Example</title>
+    <style>
+        body {
+            font-family: monospace;
+            margin: 0;
+            padding: 10px;
+        }
+        .header {
+        }
+        .wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Two columns */
+            gap: 10px;
+            width: 75%;
+            <!-- padding-top: 30px; /* Create space for the submit button */ -->
+        }
+        .additional-inputs input {
+            margin-bottom: 5px;
+        }
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .container {
+            display: flex;
+            align-items: center;
+        }
+        h2 {
+            margin: 2px;
+            margin-top: 5px;
+            margin-left: 0px;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+        }
+        .input-group div {
+            margin-right: 10px;
+        }
+        .input-group input {
+            margin-right: 10px;
+            width: 150px;
+        }
+        .input-group input.note {
+            margin-right: 10px;
+            width: 150px;
+        }
+        .input-group input.time {
+            margin-right: 10px;
+            width: 80px;
+        }
+        .input-group input.snow{
+            margin-right: 10px;
+            width: 100px;
+        }
+        .submit-all {
+            position: relative;
+            margin-bottom: 5px;
+        }
+        .invalid {
+            border-color: red;
+        }
+    </style>
+</head>
+<body>
+    <form action="/submit_ac" method="post" onsubmit="confirmSubmission(event)">
+        <div class="header">
+        <div>
+          <h3>Use this form when you change the location of the automatic chamber.</h3>
+        </div>
+        <div>
+        <a href="/">Form selection</a>
+        </div>
+            <div class="submit-all">
+                <button type="submit" disabled="disabled" id="subBut">Submit All</button>
+            </div>
+            <div class="additional-inputs">
+              <div>Date YYMMDD:</div>
+                <input type="text" name="date" placeholder="Date YYMMDD" class="number-only date" maxlength=6>
+              <div>Time HHMM:</div>
+                <input type="text" name="time" placeholder="Time HHMM" class="number-only time" maxlength=4>
+              <div>Name:</div>
+                <input type="text" name="measurerName" placeholder="Measurer name">
+            <div>Chamber location:</div>
+              <input type="text" name="ac-id" class="number-only snow" placeholder="Number" maxlength=3>
+              <input type="text" name="ac_loc" class="number-only snow" placeholder="Number" maxlength=3>
+                <!-- <input type="text" name="measurerName" placeholder="Measurer name"> -->
+                <!-- Add more inputs as needed -->
+            </div>
+        </div><!-- </div> -->
+        <div class="wrapper">
+          <div class="input-group">
+            
+        </div>
+    </form>
+    <script>
+  function isValidYYMMDD(timestamp) {
+    // Check if the input matches the YYMMDD format
+    if (!/^\d{6}$/.test(timestamp)) {
+        return false;
+    }
+
+    // Extract year, month, and day parts
+    const year = parseInt(timestamp.substring(0, 2), 10);
+    const month = parseInt(timestamp.substring(2, 4), 10);
+    const day = parseInt(timestamp.substring(4, 6), 10);
+
+    // Check if the month is valid (1-12)
+    if (month < 1 || month > 12) {
+        return false;
+    }
+
+    // Check if the day is valid for the given month
+    const daysInMonth = [31, (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+    if (day < 1 || day > daysInMonth[month - 1]) {
+        return false;
+    }
+
+    return true;
+}
+  function isValidFloat(input) {
+    // Check if the input is a number or can be converted to a number
+    if (input == ""){
+     return true;
+    }
+    if (!isNaN(input) && parseFloat(input) == input) {
+        return true;
+    } else {
+        return false;
+    }
+}
+document.addEventListener('DOMContentLoaded', (event) => {
+    const timeInputs = document.querySelectorAll('.time');
+
+    timeInputs.forEach(time => {
+      time.addEventListener('focusout', (event) => {
+        const input = event.target.value;
+        const inputBox = event.target
+
+            if (isValidHHMM(input)) {
+                inputBox.classList.remove('invalid')
+                document.getElementById("subBut").disabled = false;
+            } else {
+                // warning.style.display = 'block';
+                inputBox.classList.add('invalid')
+                document.getElementById("subBut").disabled = true;
+            }
+        // disable submit button if there are any invalids
+        const invalids = document.querySelectorAll('.invalid');
+        if (invalids.length > 0) {
+          document.getElementById("subBut").disabled = true;
+        } else {
+          document.getElementById("subBut").disabled = false;
+        }
+        });
+      })
+    })
+function isValidHHMM(value) {
+        // Check if the input is exactly 4 digits
+        if (!value) {
+            return true;
+        }
+
+        if (!/^\d{4}$/.test(value)) {
+            return false;
+        }
+
+        // Extract hours and minutes
+        const hours = parseInt(value.substring(0, 2), 10);
+        const minutes = parseInt(value.substring(2, 4), 10);
+
+        // Validate hours and minutes
+        if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+            return false;
+        }
+
+        return true;
+    }
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const top_inputs = document.querySelectorAll('.date');
+
+    top_inputs.forEach(tops => {
+      tops.addEventListener('focusout', (event) => {
+        const input = event.target.value;
+        const inputBox = event.target
+
+            if (isValidYYMMDD(input)) {
+                inputBox.classList.remove('invalid')
+            } else {
+                // warning.style.display = 'block';
+                inputBox.classList.add('invalid')
+                document.getElementById("subBut").disabled = true;
+            }
+        // disable submit button if there are any invalids
+        const invalids = document.querySelectorAll('.invalid');
+        if (invalids.length > 0) {
+          document.getElementById("subBut").disabled = true;
+        } else {
+          document.getElementById("subBut").disabled = false;
+        }
+        });
+      })
+    })
+
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const timeInputs = document.querySelectorAll('.snow');
+
+    timeInputs.forEach(time => {
+      time.addEventListener('focusout', (event) => {
+        const input = event.target.value;
+        const inputBox = event.target
+
+            if (isValidFloat(input)) {
+                inputBox.classList.remove('invalid')
+            } else {
+                // warning.style.display = 'block';
+                inputBox.classList.add('invalid')
+                document.getElementById("subBut").disabled = true;
+            }
+        // disable submit button if there are any invalids
+        const invalids = document.querySelectorAll('.invalid');
+        if (invalids.length > 0) {
+          document.getElementById("subBut").disabled = true;
+        } else {
+          document.getElementById("subBut").disabled = false;
+        }
+        });
+      })
+    })
+
+
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const numberOnlyInputs = document.querySelectorAll('.number-only');
+
+    numberOnlyInputs.forEach(input => {
+        input.addEventListener('input', (event) => {
+            const value = event.target.value;
+            if (!/^\d*$/.test(value)) {
+                event.target.value = value.replace(/[^\d.]/g, '');
+            }
+        });
+    });
+});
+  document.addEventListener("DOMContentLoaded", function() {
+      const inputs = Array.from(document.querySelectorAll("input"));
+      const lastInput = inputs[inputs.length - 1];
+      lastInput.addEventListener("keydown", function(event) {
+          if (event.key === "Tab" && !event.shiftKey) {
+              event.preventDefault();
+              inputs[0].focus();
+          }
+      });
+  });
+        function confirmSubmission(event) {
+            event.preventDefault(); // Prevent the default form submission
+            const confirmation = confirm("Are you sure you want to submit?");
+            if (confirmation) {
+                event.target.submit(); // Submit the form if confirmed
+            }
+        }
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const numberOnlyInputs = document.querySelectorAll('.number-only');
+
+    numberOnlyInputs.forEach(input => {
+        input.addEventListener('input', (event) => {
+            const value = event.target.value;
+            if (!/^\d*$/.test(value)) {
+                event.target.value = value.replace(/[^\d.]/g, '');
+            }
+        });
+    });
+});
+document.addEventListener('DOMContentLoaded', (event) => {
+    const lumimanip = document.querySelectorAll('.manip');
+
+    lumimanip.forEach(input => {
+      input.addEventListener('focusout', (event) => {
+            const value = event.target.value;
+            const inputBox = event.target
+            console.log(value)
+        if (value == "None") {
+          document.getElementById("subBut").disabled = true;
+          inputBox.classList.add('invalid')
+        }
+        else{
+          inputBox.classList.remove('invalid')
+        }
+        const invalids = document.querySelectorAll('.invalid');
+        if (invalids.length > 0) {
+          document.getElementById("subBut").disabled = true;
+        } else {
+          document.getElementById("subBut").disabled = false;
+        }
+
+        });
+    });
+})
+    </script>
+</body>
+</html>
+
+

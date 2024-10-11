@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input and Submit Example</title>
+    <style>
+        body {
+            font-family: monospace;
+            margin: 0;
+            padding: 10px;
+        }
+        .invalid {
+            border-color: red;
+        }
+        .header {
+        }
+        .wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Two columns */
+            gap: 10px;
+            width: 75%;
+            <!-- padding-top: 30px; /* Create space for the submit button */ -->
+        }
+        .additional-inputs input {
+            margin-bottom: 5px;
+        }
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .container {
+            display: flex;
+            align-items: center;
+        }
+        h2 {
+            margin: 2px;
+            margin-top: 5px;
+            margin-left: 0px;
+        }
+        a {
+            margin: 5px;
+            margin-bottom: 5px;
+            font-size: 17px;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+        }
+        .input-group div {
+            margin-right: 10px;
+        }
+        .input-group input {
+            margin-right: 10px;
+            width: 150px;
+        }
+        .input-group input.note {
+            margin-right: 10px;
+            width: 150px;
+        }
+        .input-group input.time {
+            margin-right: 10px;
+            width: 80px;
+        }
+        .input-group input.snow{
+            margin-right: 10px;
+            width: 100px;
+        }
+        .submit-all {
+            position: relative;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Forms for Oulanka field measurement inputs.</h1>
+    <input class="date" placeholder="Input date"></input><br>
+    <input class="date" placeholder="LICOR ID"></input><br>
+    <button placeholder="Input date">Download licor to dataframe.</button>
+      <h1>Run Script</h1>
+    <form action="/licor_dl" method="post">
+        <button type="submit">Run Script</button>
+    </form>
+    <script></script>
+</body>
+</html>
+

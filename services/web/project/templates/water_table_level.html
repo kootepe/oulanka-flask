@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input and Submit Example</title>
+    <style>
+        body {
+            font-family: monospace;
+            margin: 0;
+            padding: 10px;
+        }
+        .header {
+        }
+        .wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Two columns */
+            gap: 10px;
+            width: 75%;
+            <!-- padding-top: 30px; /* Create space for the submit button */ -->
+        }
+        .additional-inputs input {
+            margin-bottom: 5px;
+        }
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .container {
+            display: flex;
+            align-items: center;
+        }
+        h2 {
+            margin: 2px;
+            margin-top: 5px;
+            margin-left: 0px;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+        }
+        .input-group div {
+            margin-right: 10px;
+        }
+        .input-group input {
+            margin-right: 10px;
+            width: 150px;
+        }
+        .input-group input.water{
+            margin-right: 10px;
+            width: 150px;
+        }
+        .input-group input.time {
+            margin-right: 10px;
+            width: 80px;
+        }
+        .input-group input.snow{
+            margin-right: 10px;
+            width: 100px;
+        }
+        .submit-all {
+            position: relative;
+            margin-bottom: 5px;
+        }
+        .invalid {
+            border-color: red;
+        }
+    </style>
+</head>
+<body>
+    <form action="/submit_water" method="post" onsubmit="confirmSubmission(event)">
+        <div class="header">
+        <div>
+        <a href="/">Form selection</a>
+        </div>
+            <div class="submit-all">
+                <button type="submit" id="subBut" disabled="disabled">Submit All</button>
+            </div>
+            <div class="additional-inputs">
+              <div>Date YYMMDD:</div>
+                <input type="text" name="measurementDate" class="date" placeholder="Measurement date YYMMDD" class="number-only" maxlength=6>
+              <div>Name:</div>
+                <input type="text" name="measurerName" class="name" placeholder="Measurer name">
+            </div>
+        </div><!-- </div> -->
+        <div class="wrapper">
+            <div class="column">
+          <h2>Fen plots</h2>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot37:</div>
+                        <input type="text" name="waterIn37" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut37" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot38:</div>
+                        <input type="text" name="waterIn38" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut38" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot39:</div>
+                        <input type="text" name="waterIn39" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut39" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot40:</div>
+                        <input type="text" name="waterIn40" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut40" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot41:</div>
+                        <input type="text" name="waterIn41" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut41" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot42:</div>
+                        <input type="text" name="waterIn42" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut42" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot43:</div>
+                        <input type="text" name="waterIn43" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut43" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot44:</div>
+                        <input type="text" name="waterIn44" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut44" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot45:</div>
+                        <input type="text" name="waterIn45" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut45" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot46:</div>
+                        <input type="text" name="waterIn46" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut46" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot47:</div>
+                        <input type="text" name="waterIn47" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut47" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot48:</div>
+                        <input type="text" name="waterIn48" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut48" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot49:</div>
+                        <input type="text" name="waterIn49" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut49" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot50:</div>
+                        <input type="text" name="waterIn50" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut50" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot51:</div>
+                        <input type="text" name="waterIn51" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut51" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot52:</div>
+                        <input type="text" name="waterIn52" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut52" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot53:</div>
+                        <input type="text" name="waterIn53" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut53" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot54:</div>
+                        <input type="text" name="waterIn54" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut54" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot55:</div>
+                        <input type="text" name="waterIn55" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut55" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot56:</div>
+                        <input type="text" name="waterIn56" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut56" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot57:</div>
+                        <input type="text" name="waterIn57" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut57" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot58:</div>
+                        <input type="text" name="waterIn58" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut58" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot59:</div>
+                        <input type="text" name="waterIn59" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut59" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot60:</div>
+                        <input type="text" name="waterIn60" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut60" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot61:</div>
+                        <input type="text" name="waterIn61" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut61" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot62:</div>
+                        <input type="text" name="waterIn62" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut62" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot63:</div>
+                        <input type="text" name="waterIn63" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut63" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot64:</div>
+                        <input type="text" name="waterIn64" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut64" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot65:</div>
+                        <input type="text" name="waterIn65" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut65" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot66:</div>
+                        <input type="text" name="waterIn66" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut66" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot67:</div>
+                        <input type="text" name="waterIn67" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut67" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot68:</div>
+                        <input type="text" name="waterIn68" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut68" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot69:</div>
+                        <input type="text" name="waterIn69" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut69" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot70:</div>
+                        <input type="text" name="waterIn70" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut70" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot71:</div>
+                        <input type="text" name="waterIn71" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut71" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot72:</div>
+                        <input type="text" name="waterIn72" class="number-only water" placeholder="Water inside cm" maxlength=3>
+                        <input type="text" name="waterOut72" class="number-only water" placeholder="Water outside cm" maxlength=3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <script>
+function isValidYYMMDD(timestamp) {
+    // Check if the input matches the YYMMDD format
+    if (!/^\d{6}$/.test(timestamp)) {
+        return false;
+    }
+
+    // Extract year, month, and day parts
+    const year = parseInt(timestamp.substring(0, 2), 10);
+    const month = parseInt(timestamp.substring(2, 4), 10);
+    const day = parseInt(timestamp.substring(4, 6), 10);
+
+    // Check if the month is valid (1-12)
+    if (month < 1 || month > 12) {
+        return false;
+    }
+
+    // Check if the day is valid for the given month
+    const daysInMonth = [31, (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+    if (day < 1 || day > daysInMonth[month - 1]) {
+        return false;
+    }
+
+    return true;
+}
+function isValidHHMM(value) {
+        // Check if the input is exactly 4 digits
+        if (!value) {
+            return true;
+        }
+
+        if (!/^\d{4}$/.test(value)) {
+            return false;
+        }
+
+        // Extract hours and minutes
+        const hours = parseInt(value.substring(0, 2), 10);
+        const minutes = parseInt(value.substring(2, 4), 10);
+
+        // Validate hours and minutes
+        if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+            return false;
+        }
+
+        return true;
+    }
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const top_inputs = document.querySelectorAll('.date');
+
+    top_inputs.forEach(tops => {
+      tops.addEventListener('focusout', (event) => {
+        const input = event.target.value;
+        const inputBox = event.target
+
+            if (isValidYYMMDD(input)) {
+                inputBox.classList.remove('invalid')
+            } else {
+                // warning.style.display = 'block';
+                inputBox.classList.add('invalid')
+                document.getElementById("subBut").disabled = true;
+            }
+        // disable submit button if there are any invalids
+        const invalids = document.querySelectorAll('.invalid');
+        if (invalids.length > 0) {
+          document.getElementById("subBut").disabled = true;
+        } else {
+          document.getElementById("subBut").disabled = false;
+        }
+        });
+      })
+    })
+
+  // document.addEventListener('DOMContentLoaded', (event) => {
+  //   const timeInputs = document.querySelectorAll('.time');
+  //
+  //   timeInputs.forEach(time => {
+  //     time.addEventListener('focusout', (event) => {
+  //       const input = event.target.value;
+  //       const inputBox = event.target
+  //
+  //           if (isValidHHMM(input)) {
+  //               inputBox.classList.remove('invalid')
+  //               document.getElementById("subBut").disabled = false;
+  //           } else {
+  //               // warning.style.display = 'block';
+  //               inputBox.classList.add('invalid')
+  //               document.getElementById("subBut").disabled = true;
+  //           }
+  //       // disable submit button if there are any invalids
+  //       const invalids = document.querySelectorAll('.invalid');
+  //       if (invalids.length > 0) {
+  //         document.getElementById("subBut").disabled = true;
+  //       } else {
+  //         document.getElementById("subBut").disabled = false;
+  //       }
+  //       });
+  //     })
+  //   })
+
+
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const numberOnlyInputs = document.querySelectorAll('.number-only');
+
+    numberOnlyInputs.forEach(input => {
+        input.addEventListener('input', (event) => {
+            const value = event.target.value;
+            if (!/^\d*$/.test(value)) {
+                event.target.value = value.replace(/[^\d.]/g, '');
+            }
+        });
+    });
+});
+  document.addEventListener("DOMContentLoaded", function() {
+      const inputs = Array.from(document.querySelectorAll("input"));
+      const lastInput = inputs[inputs.length - 1];
+      lastInput.addEventListener("keydown", function(event) {
+          if (event.key === "Tab" && !event.shiftKey) {
+              event.preventDefault();
+              inputs[0].focus();
+          }
+      });
+  });
+        function confirmSubmission(event) {
+            event.preventDefault(); // Prevent the default form submission
+            const confirmation = confirm("Are you sure you want to submit?");
+            if (confirmation) {
+                event.target.submit(); // Submit the form if confirmed
+            }
+        }
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const numberOnlyInputs = document.querySelectorAll('.number-only');
+
+    numberOnlyInputs.forEach(input => {
+        input.addEventListener('input', (event) => {
+            const value = event.target.value;
+            if (!/^\d*$/.test(value)) {
+                event.target.value = value.replace(/[^\d.]/g, '');
+            }
+        });
+    });
+});
+    </script>
+</body>
+</html>
+

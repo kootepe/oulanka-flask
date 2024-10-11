@@ -1,0 +1,786 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input and Submit Example</title>
+    <style>
+        body {
+            font-family: monospace;
+            margin: 0;
+            padding: 10px;
+        }
+        .header {
+        }
+        .wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Two columns */
+            gap: 10px;
+            width: 75%;
+            <!-- padding-top: 30px; /* Create space for the submit button */ -->
+        }
+        .additional-inputs input {
+            margin-bottom: 5px;
+        }
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .container {
+            display: flex;
+            align-items: center;
+        }
+        h2 {
+            margin: 2px;
+            margin-top: 5px;
+            margin-left: 0px;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+        }
+        .input-group div {
+            margin-right: 10px;
+        }
+        .input-group input {
+            margin-right: 10px;
+            width: 150px;
+        }
+        .input-group input.note {
+            margin-right: 10px;
+            width: 150px;
+        }
+        .input-group input.time {
+            margin-right: 10px;
+            width: 80px;
+        }
+        .input-group input.snow{
+            margin-right: 10px;
+            width: 100px;
+        }
+        .submit-all {
+            position: relative;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <form action="/submit" method="post" onsubmit="confirmSubmission(event)">
+        <div class="header">
+        <div>
+        <a href="/snowdepth">Snowdepth input.</a>
+        </div>
+        <div>
+        <a href="/manual_measurement_forest">Forest manual measurement input.</a>
+        </div>
+            <div class="submit-all">
+                <button type="submit">Submit All</button>
+            </div>
+            <div class="additional-inputs">
+              <div>Date YYMMDD:</div>
+                <input type="text" name="measurementDate" placeholder="Measurement date YYMMDD" class="number-only" maxlength=6>
+              <div>Name:</div>
+                <input type="text" name="measurerName" placeholder="Measurer name">
+              <div>Tehtiiinkö lumimanipulaatio? </div>
+                <select name="lumimanip" id="yesno">
+                  <option value="None"></option>
+                  <option value="0">Ei</option>
+                  <option value="1">Kyllä</option>
+                </select> 
+                <!-- <input type="text" name="measurerName" placeholder="Measurer name"> -->
+                <!-- Add more inputs as needed -->
+            </div>
+        </div><!-- </div> -->
+        <div class="wrapper">
+            <div class="column">
+                <h2>Forest plots</h2>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot1:&nbsp</div>
+                        <input type="text" name="snow1-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow1-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow1-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi1" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot2:&nbsp</div>
+                        <input type="text" name="snow2-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow2-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow2-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi2" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot3:&nbsp</div>
+                        <input type="text" name="snow3-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow3-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow3-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi3" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot4:&nbsp</div>
+                        <input type="text" name="snow4-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow4-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow4-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi4" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot5:&nbsp</div>
+                        <input type="text" name="snow5-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow5-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow5-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi5" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot6:&nbsp</div>
+                        <input type="text" name="snow6-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow6-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow6-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi6" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot7:&nbsp</div>
+                        <input type="text" name="snow7-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow7-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow7-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi7" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot8:&nbsp</div>
+                        <input type="text" name="snow8-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow8-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow8-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi8" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot9:&nbsp</div>
+                        <input type="text" name="snow9-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow9-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow9-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi9" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot10:</div>
+                        <input type="text" name="snow10-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow10-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow10-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi10" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot11:</div>
+                        <input type="text" name="snow11-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow11-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow11-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi11" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot12:</div>
+                        <input type="text" name="snow12-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow12-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow12-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi12" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot13:</div>
+                        <input type="text" name="snow13-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow13-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow13-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi13" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot14:</div>
+                        <input type="text" name="snow14-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow14-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow14-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi14" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot15:</div>
+                        <input type="text" name="snow15-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow15-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow15-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi15" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot16:</div>
+                        <input type="text" name="snow16-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow16-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow16-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi16" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot17:</div>
+                        <input type="text" name="snow17-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow17-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow17-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi17" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot18:</div>
+                        <input type="text" name="snow18-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow18-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow18-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi18" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot19:</div>
+                        <input type="text" name="snow19-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow19-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow19-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi19" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot20:</div>
+                        <input type="text" name="snow20-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow20-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow20-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi20" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot21:</div>
+                        <input type="text" name="snow21-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow21-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow21-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi21" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot22:</div>
+                        <input type="text" name="snow22-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow22-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow22-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi22" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot23:</div>
+                        <input type="text" name="snow23-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow23-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow23-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi23" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot24:</div>
+                        <input type="text" name="snow24-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow24-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow24-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi24" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot25:</div>
+                        <input type="text" name="snow25-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow25-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow25-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi25" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot26:</div>
+                        <input type="text" name="snow26-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow26-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow26-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi26" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot27:</div>
+                        <input type="text" name="snow27-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow27-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow27-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi27" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot28:</div>
+                        <input type="text" name="snow28-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow28-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow28-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi28" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot29:</div>
+                        <input type="text" name="snow29-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow29-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow29-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi29" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot30:</div>
+                        <input type="text" name="snow30-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow30-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow30-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi30" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot31:</div>
+                        <input type="text" name="snow31-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow31-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow31-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi31" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot32:</div>
+                        <input type="text" name="snow32-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow32-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow32-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi32" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot33:</div>
+                        <input type="text" name="snow33-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow33-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow33-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi33" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot34:</div>
+                        <input type="text" name="snow34-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow34-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow34-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi34" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot35:</div>
+                        <input type="text" name="snow35-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow35-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow35-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi35" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot36:</div>
+                        <input type="text" name="snow36-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow36-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow36-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi36" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+            </div>
+            <div class="column">
+          <h2>Fen plots</h2>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot37:</div>
+                        <input type="text" name="snow37-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow37-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow37-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi37" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot38:</div>
+                        <input type="text" name="snow38-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow38-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow38-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi38" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot39:</div>
+                        <input type="text" name="snow39-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow39-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow39-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi39" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot40:</div>
+                        <input type="text" name="snow40-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow40-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow40-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi40" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot41:</div>
+                        <input type="text" name="snow41-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow41-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow41-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi41" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot42:</div>
+                        <input type="text" name="snow42-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow42-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow42-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi42" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot43:</div>
+                        <input type="text" name="snow43-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow43-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow43-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi43" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot44:</div>
+                        <input type="text" name="snow44-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow44-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow44-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi44" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot45:</div>
+                        <input type="text" name="snow45-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow45-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow45-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi45" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot46:</div>
+                        <input type="text" name="snow46-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow46-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow46-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi46" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot47:</div>
+                        <input type="text" name="snow47-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow47-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow47-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi47" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot48:</div>
+                        <input type="text" name="snow48-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow48-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow48-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi48" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot49:</div>
+                        <input type="text" name="snow49-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow49-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow49-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi49" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot50:</div>
+                        <input type="text" name="snow50-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow50-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow50-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi50" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot51:</div>
+                        <input type="text" name="snow51-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow51-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow51-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi51" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot52:</div>
+                        <input type="text" name="snow52-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow52-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow52-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi52" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot53:</div>
+                        <input type="text" name="snow53-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow53-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow53-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi53" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot54:</div>
+                        <input type="text" name="snow54-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow54-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow54-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi54" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot55:</div>
+                        <input type="text" name="snow55-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow55-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow55-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi55" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot56:</div>
+                        <input type="text" name="snow56-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow56-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow56-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi56" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot57:</div>
+                        <input type="text" name="snow57-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow57-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow57-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi57" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot58:</div>
+                        <input type="text" name="snow58-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow58-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow58-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi58" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot59:</div>
+                        <input type="text" name="snow59-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow59-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow59-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi59" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot60:</div>
+                        <input type="text" name="snow60-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow60-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow60-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi60" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot61:</div>
+                        <input type="text" name="snow61-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow61-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow61-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi61" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot62:</div>
+                        <input type="text" name="snow62-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow62-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow62-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi62" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot63:</div>
+                        <input type="text" name="snow63-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow63-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow63-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi63" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot64:</div>
+                        <input type="text" name="snow64-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow64-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow64-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi64" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot65:</div>
+                        <input type="text" name="snow65-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow65-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow65-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi65" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot66:</div>
+                        <input type="text" name="snow66-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow66-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow66-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi66" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot67:</div>
+                        <input type="text" name="snow67-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow67-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow67-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi67" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot68:</div>
+                        <input type="text" name="snow68-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow68-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow68-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi68" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot69:</div>
+                        <input type="text" name="snow69-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow69-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow69-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi69" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot70:</div>
+                        <input type="text" name="snow70-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow70-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow70-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi70" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot71:</div>
+                        <input type="text" name="snow71-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow71-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow71-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi71" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+                <div class="container">
+                    <div class="input-group">
+                        <div>Plot72:</div>
+                        <input type="text" name="snow72-1" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow72-2" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="snow72-3" class="number-only snow" placeholder="Snowdepth (cm)" maxlength=3>
+                        <input type="text" name="palvi72" class="number-only" placeholder="Palvi-%" maxlength=3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <script>
+  document.addEventListener('DOMContentLoaded', (event) => {
+    const numberOnlyInputs = document.querySelectorAll('.number-only');
+
+    numberOnlyInputs.forEach(input => {
+        input.addEventListener('input', (event) => {
+            const value = event.target.value;
+            if (!/^\d*$/.test(value)) {
+                event.target.value = value.replace(/[^\d.]/g, '');
+            }
+        });
+    });
+});
+  document.addEventListener("DOMContentLoaded", function() {
+      const inputs = Array.from(document.querySelectorAll("input"));
+      const lastInput = inputs[inputs.length - 1];
+      lastInput.addEventListener("keydown", function(event) {
+          if (event.key === "Tab" && !event.shiftKey) {
+              event.preventDefault();
+              inputs[0].focus();
+          }
+      });
+  });
+        function confirmSubmission(event) {
+            event.preventDefault(); // Prevent the default form submission
+            const confirmation = confirm("Are you sure you want to submit?");
+            if (confirmation) {
+                event.target.submit(); // Submit the form if confirmed
+            }
+        }
+    </script>
+</body>
+</html>
+
