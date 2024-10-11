@@ -4,7 +4,6 @@ import pandas as pd
 import json
 from datetime import datetime, timedelta
 
-from project.tools.influxdb_funcs import read_ifdb
 from project.ac_layout import create_layout
 from project.tools.create_graph import create_plot
 from project.tools.measurement import MeasurementCycle
@@ -14,8 +13,6 @@ def ac_plot(flask_app):
     with open("project/config.json", "r") as f:
         config = json.load(f)
         ifdb_dict = config["ifdb_dict"]
-
-    meas_dict = {"measurement": "AC LICOR", "fields": "CH4,CO2"}
 
     with open("project/cycle.json", "r") as f:
         cycles = json.load(f)["CYCLE"]
