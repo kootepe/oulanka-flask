@@ -6,37 +6,7 @@ from datetime import datetime, timedelta
 
 from project.tools.influxdb_funcs import read_ifdb
 from project.tools.create_graph import create_plot
-
-
-class MeasurementCycle:
-    def __init__(self, id, start, close, open, end, data=None):
-        self.id = id
-        self.start = start
-        self.close = close
-        self.open = open
-        self.end = end
-        self.data = data
-        self.lagtime_index = None
-        self.localize_times()
-
-    def find_max(self, gas):
-        mask1 = self.data.index > self.open
-        mask2 = self.data.index < (self.open + pd.Timedelta(minutes=2))
-        data = self.data[mask1 & mask2]
-        if not data.empty:
-            self.lagtime_index = data[gas].idxmax()
-            self.lagtime_s = (self.lagtime_index - self.open).total_seconds()
-            print(self.lagtime_s)
-
-    def remove_lagtime(self):
-        self.lagtime_index = None
-
-    def localize_times(self):
-        tz = "Europe/Helsinki"
-        self.start = self.start.tz_localize(tz)
-        self.close = self.close.tz_localize(tz)
-        self.open = self.open.tz_localize(tz)
-        self.end = self.end.tz_localize(tz)
+from project.tools.measurement import MeasurementCycle
 
 
 def ac_plot(flask_app):
