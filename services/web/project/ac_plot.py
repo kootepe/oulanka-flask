@@ -1,6 +1,5 @@
 import dash
 from dash import Dash, dcc, html, Input, Output, State, ctx
-import plotly.graph_objs as go
 import pandas as pd
 import json
 from datetime import datetime, timedelta
@@ -17,7 +16,7 @@ class MeasurementCycle:
         self.open = open
         self.end = end
         self.data = data
-        self.lagtime = None
+        self.lagtime_index = None
         self.localize_times()
 
     def find_max(self, gas):
@@ -25,11 +24,12 @@ class MeasurementCycle:
         mask2 = self.data.index < (self.open + pd.Timedelta(minutes=2))
         data = self.data[mask1 & mask2]
         if not data.empty:
-            self.lagtime = data[gas].idxmax()
-            print(self.lagtime - self.open)
+            self.lagtime_index = data[gas].idxmax()
+            self.lagtime_s = (self.lagtime_index - self.open).total_seconds()
+            print(self.lagtime_s)
 
     def remove_lagtime(self):
-        self.lagtime = None
+        self.lagtime_index = None
 
     def localize_times(self):
         tz = "Europe/Helsinki"
@@ -82,8 +82,12 @@ def ac_plot(flask_app):
             html.Div(id="measurement-info", style={"padding": "20px 0"}),
             html.Button("Previous", id="prev-button", n_clicks=0),
             html.Button("Next", id="next-button", n_clicks=0),
-            html.Button("Find lagtime", id="find-max", n_clicks=0),
-            html.Button("Delete lagtime", id="del-lagtime", n_clicks=0),
+            html.Div(
+                [
+                    html.Button("Find lagtime", id="find-max", n_clicks=0),
+                    html.Button("Delete lagtime", id="del-lagtime", n_clicks=0),
+                ]
+            ),
             dcc.Graph(id="ch4-graph"),
             dcc.Graph(id="co2-graph"),
             html.Div(id="output"),
@@ -137,7 +141,6 @@ def ac_plot(flask_app):
         )
         if not ctx.triggered:
             # Handle the case when no button is triggered
-            # This could be the initial load or reset condition
             index = 0  # Reset index or any default value you'd like to set
             chamber = "All"  # Set a default chamber or any default value
             chamber_measurements = all_measurements  # Default to all measurements

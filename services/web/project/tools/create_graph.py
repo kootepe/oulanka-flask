@@ -31,22 +31,34 @@ def create_plot(measurement, gas, title, color_key="blue"):
     )
     lag_line = (
         go.Scatter(
-            x=[measurement.lagtime, measurement.lagtime],
+            x=[measurement.lagtime_index, measurement.lagtime_index],
             y=[measurement.data[gas].min(), measurement.data[gas].max()],
             mode="lines",
             line=dict(color="red", dash="dash"),
             name="lagtime",
         )
-        if measurement.lagtime
+        if measurement.lagtime_index
         else None
     )
 
     layout = go.Layout(
-        title=f"Chamber {measurement.id} {title} Measurement {measurement.close}",
-        xaxis_title="Time",
+        # title=f"Chamber {measurement.id} {title} Measurement {measurement.close}",
         yaxis_title="Value",
         width=1000,
-        height=400,
+        height=300,
+        title={
+            "text": f"Chamber {measurement.id} {title} Measurement {measurement.close}",
+            # "x": 0.33,  # Horizontal position of the title (0 - left, 0.5 - center, 1 - right)
+            # "y": 0.82,  # Vertical position of the title, with 1 being the top
+            # "xanchor": "center",  # Anchoring the title horizontally
+            # "yanchor": "top",  # Anchoring the title vertically
+        },
+        margin=dict(
+            l=20,  # Left margin
+            r=20,  # Right margin
+            t=40,  # Top margin (reduce this if you don't need extra space for the title)
+            b=20,  # Bottom margin
+        ),
         xaxis=dict(type="date"),
     )
     fig = go.Figure(
