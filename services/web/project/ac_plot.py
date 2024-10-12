@@ -21,9 +21,19 @@ def ac_plot(flask_app):
         today = datetime.today()
         return [(today - timedelta(days=i)).date() for i in range(7)][::-1]
 
-    # Preprocess measurements and cycle data
+    def generate_month():
+        today = datetime.today()
+        return [(today - timedelta(days=i)).date() for i in range(30)][::-1]
+
+    def generate_day():
+        today = datetime.today()
+        return [(today - timedelta(days=i)).date() for i in range(1)][::-1]
+
+    # Generate measurement cycle
     all_measurements = []
+    day = generate_day()
     week = generate_week()
+    month = generate_month()
     for day in week:
         for cycle in cycles:
             if pd.Timestamp(f"{day} {cycle.get('START')}") > datetime.now():
@@ -132,19 +142,21 @@ def ac_plot(flask_app):
         measurement = chamber_measurements[index]
 
         # Ensure measurement data is loaded
-        measurement.get_data(ifdb_dict)
-        measurement.data.set_index("datetime", inplace=True)
-        measurement.data.index = pd.to_datetime(measurement.data.index)
-        measurement.data = measurement.data.tz_localize(tz)
+        if measurement.data is None:
+            measurement.get_data(ifdb_dict)
+            # measurement.data.set_index("datetime", inplace=True)
+            # measurement.data.index = pd.to_datetime(measurement.data.index)
+            # measurement.data = measurement.data.tz_localize(tz)
 
         if triggered_id == "find-max":
             measurement.find_max("CH4")
         if triggered_id == "del-lagtime":
-            measurement.remove_lagtime()
+            measurement.del_lagtime()
 
         fig_ch4 = create_plot(measurement, "CH4", "Methane")
         fig_co2 = create_plot(measurement, "CO2", "Carbon Dioxide", color_key="green")
         lag_graph = mk_lag_graph(chamber_measurements, ifdb_dict)
+        # lag_graph = None
         measurement_info = f"Measurement {index + 1}/{len(chamber_measurements)} - Date: {measurement.start.date()}"
 
         return fig_ch4, fig_co2, lag_graph, measurement_info, index, chamber
