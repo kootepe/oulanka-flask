@@ -7,9 +7,11 @@ from datetime import datetime, timedelta
 from project.ac_layout import create_layout
 from project.tools.create_graph import create_plot, mk_lag_graph
 from project.tools.measurement import MeasurementCycle
+from project.tools.logger import init_logger
 
 
 def ac_plot(flask_app):
+    logger = init_logger()
     with open("project/config.json", "r") as f:
         config = json.load(f)
         ifdb_dict = config["ifdb_dict"]
@@ -17,13 +19,17 @@ def ac_plot(flask_app):
     with open("project/cycle.json", "r") as f:
         cycles = json.load(f)["CYCLE"]
 
-    def generate_week():
+    def generate_year():
         today = datetime.today()
-        return [(today - timedelta(days=i)).date() for i in range(7)][::-1]
+        return [(today - timedelta(days=i)).date() for i in range(365)][::-1]
 
     def generate_month():
         today = datetime.today()
-        return [(today - timedelta(days=i)).date() for i in range(30)][::-1]
+        return [(today - timedelta(days=i)).date() for i in range(60)][::-1]
+
+    def generate_week():
+        today = datetime.today()
+        return [(today - timedelta(days=i)).date() for i in range(7)][::-1]
 
     def generate_day():
         today = datetime.today()
@@ -31,10 +37,11 @@ def ac_plot(flask_app):
 
     # Generate measurement cycle
     all_measurements = []
-    day = generate_day()
+    hours = generate_day()
     week = generate_week()
     month = generate_month()
-    for day in week:
+    year = generate_year()
+    for day in month:
         for cycle in cycles:
             if pd.Timestamp(f"{day} {cycle.get('START')}") > datetime.now():
                 continue
@@ -153,9 +160,12 @@ def ac_plot(flask_app):
         if triggered_id == "del-lagtime":
             measurement.del_lagtime()
 
-        fig_ch4 = create_plot(measurement, "CH4", "Methane")
-        fig_co2 = create_plot(measurement, "CO2", "Carbon Dioxide", color_key="green")
-        lag_graph = mk_lag_graph(chamber_measurements, ifdb_dict)
+        if not measurement.no_data_in_db:
+            fig_ch4 = create_plot(measurement, "CH4", "Methane")
+            fig_co2 = create_plot(
+                measurement, "CO2", "Carbon Dioxide", color_key="green"
+            )
+        lag_graph = mk_lag_graph(chamber_measurements, [measurement], ifdb_dict)
         # lag_graph = None
         measurement_info = f"Measurement {index + 1}/{len(chamber_measurements)} - Date: {measurement.start.date()}"
 
