@@ -61,6 +61,18 @@ def ac_plot(flask_app):
     app.layout = create_layout()
 
     @app.callback(
+        Output("stored-index", "value"),
+        [
+            Input("lag-graph", "clickData"),
+        ],
+        State("stored-index", "data"),
+    )
+    def jump_to_graph(clickdata, current_index):
+        if clickdata is None:
+            return current_index
+        return clickdata.get("customdata")
+
+    @app.callback(
         Output("chamber-buttons", "children"),
         Input("output", "children"),
     )
@@ -114,9 +126,17 @@ def ac_plot(flask_app):
         [Input({"type": "dynamic-button", "index": dash.dependencies.ALL}, "n_clicks")],
         State("stored-index", "data"),
         State("stored-chamber", "data"),
+        [Input("lag-graph", "clickData")],
     )
     def update_graph(
-        prev_clicks, next_clicks, find_max, del_lagtime, cham_n_clicks, index, chamber
+        prev_clicks,
+        next_clicks,
+        find_max,
+        del_lagtime,
+        cham_n_clicks,
+        index,
+        chamber,
+        lag_graph,
     ):
         tz = "Europe/Helsinki"
         chamber_measurements = (
@@ -133,10 +153,17 @@ def ac_plot(flask_app):
             # Directly access ctx.triggered_id as a dictionary
             triggered_id = ctx.triggered_id
             if triggered_id == "prev-button":
+            if triggered_id == "lag-graph":
+                pt = lag_graph.get("points")[0]
+                index = pt.get("customdata")[2]
+            elif triggered_id == "prev-button":
                 index = (index - 1) % len(chamber_measurements)
             elif triggered_id == "next-button":
                 index = (index + 1) % len(chamber_measurements)
-            elif triggered_id == "find-max" or triggered_id == "del-lagtime":
+            elif (
+                triggered_id == "find-max"
+                or triggered_id == "del-lagtime"
+            ):
                 pass  # Additional logic for find-max button can be placed here
             elif triggered_id.get("type") == "dynamic-button":
                 chamber = triggered_id["index"]
