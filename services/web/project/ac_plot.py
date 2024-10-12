@@ -3,6 +3,7 @@ from dash import Dash, dcc, html, Input, Output, State, ctx
 import pandas as pd
 import json
 from datetime import datetime, timedelta
+from plotly.graph_objs import Figure
 
 from project.ac_layout import create_layout
 from project.tools.create_graph import create_plot, mk_lag_graph
@@ -127,6 +128,7 @@ def ac_plot(flask_app):
         State("stored-index", "data"),
         State("stored-chamber", "data"),
         [Input("lag-graph", "clickData")],
+        Input("skip-invalid", "value"),
     )
     def update_graph(
         prev_clicks,
@@ -137,8 +139,8 @@ def ac_plot(flask_app):
         index,
         chamber,
         lag_graph,
+        skip_invalid,
     ):
-        tz = "Europe/Helsinki"
         chamber_measurements = (
             all_measurements if chamber == "All" else cycle_dict[chamber]
         )
@@ -152,17 +154,17 @@ def ac_plot(flask_app):
         else:
             # Directly access ctx.triggered_id as a dictionary
             triggered_id = ctx.triggered_id
-            if triggered_id == "prev-button":
             if triggered_id == "lag-graph":
                 pt = lag_graph.get("points")[0]
                 index = pt.get("customdata")[2]
             elif triggered_id == "prev-button":
-                index = (index - 1) % len(chamber_measurements)
+                index = decrement_index(index, chamber_measurements)
             elif triggered_id == "next-button":
-                index = (index + 1) % len(chamber_measurements)
+                index = increment_index(index, chamber_measurements)
             elif (
                 triggered_id == "find-max"
                 or triggered_id == "del-lagtime"
+                or triggered_id == "skip-invalid"
             ):
                 pass  # Additional logic for find-max button can be placed here
             elif triggered_id.get("type") == "dynamic-button":
@@ -174,28 +176,40 @@ def ac_plot(flask_app):
 
         # Retrieve the current measurement based on the updated index
         measurement = chamber_measurements[index]
+        if skip_invalid and triggered_id == "next-button":
+            while measurement.is_valid is False:
+                index = increment_index(index, chamber_measurements)
+                measurement = chamber_measurements[index]
+        if skip_invalid and triggered_id == "prev-button":
+            while measurement.is_valid is False:
+                index = decrement_index(index, chamber_measurements)
+                measurement = chamber_measurements[index]
+        measurement = chamber_measurements[index]
 
         # Ensure measurement data is loaded
-        if measurement.data is None:
+        if measurement.data is None and measurement.is_valid is True:
             measurement.get_data(ifdb_dict)
-            # measurement.data.set_index("datetime", inplace=True)
-            # measurement.data.index = pd.to_datetime(measurement.data.index)
-            # measurement.data = measurement.data.tz_localize(tz)
 
         if triggered_id == "find-max":
             measurement.find_max("CH4")
         if triggered_id == "del-lagtime":
             measurement.del_lagtime()
 
-        if not measurement.no_data_in_db:
-            fig_ch4 = create_plot(measurement, "CH4", "Methane")
-            fig_co2 = create_plot(
-                measurement, "CO2", "Carbon Dioxide", color_key="green"
-            )
+        fig_ch4 = Figure()
+        fig_co2 = Figure()
+        if measurement.is_valid is True:
+            fig_ch4 = create_plot(measurement, "CH4")
+            fig_co2 = create_plot(measurement, "CO2", color_key="green")
+
         lag_graph = mk_lag_graph(chamber_measurements, [measurement], ifdb_dict)
-        # lag_graph = None
         measurement_info = f"Measurement {index + 1}/{len(chamber_measurements)} - Date: {measurement.start.date()}"
 
         return fig_ch4, fig_co2, lag_graph, measurement_info, index, chamber
+
+    def decrement_index(index, measurements):
+        return (index - 1) % len(measurements)
+
+    def increment_index(index, measurements):
+        return (index + 1) % len(measurements)
 
     return app

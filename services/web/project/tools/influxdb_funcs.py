@@ -85,9 +85,6 @@ def mk_ifdb_ts(ts):
 
 
 def read_aux_ifdb(dict, s_ts=None, e_ts=None):
-    logger.debug(dict)
-    # logger.debug(f"Running query from {start_ts} to {stop_ts}")
-
     bucket = dict.get("bucket")
     measurement = dict.get("measurement_name")
     fields = list(dict.get("field").split(","))
@@ -102,7 +99,7 @@ def read_aux_ifdb(dict, s_ts=None, e_ts=None):
     with init_client(dict) as client:
         q_api = client.query_api()
         query = mk_query(bucket, s_ts, e_ts, measurement, fields)
-        logger.debug("Query:\n" + query)
+        # logger.debug("Query:\n" + query)
         try:
             df = q_api.query_data_frame(query)[["_time"] + fields]
         except Exception:
@@ -112,7 +109,7 @@ def read_aux_ifdb(dict, s_ts=None, e_ts=None):
         df = df.rename(columns={"_time": "datetime"})
         df["datetime"] = df.datetime.dt.tz_convert(None)
         df.set_index("datetime", inplace=True)
-        logger.debug(f"\n{df}")
+        logger.debug(df)
         return df
 
 
@@ -136,7 +133,7 @@ def read_ifdb(ifdb_dict, meas_dict, start_ts=None, stop_ts=None):
     with init_client(ifdb_dict) as client:
         q_api = client.query_api()
         query = mk_query(bucket, start, stop, measurement, fields)
-        logger.debug("Query:\n" + query)
+        logger.debug(query)
         try:
             df = q_api.query_data_frame(query)[["_time"] + fields]
         except Exception:
@@ -145,8 +142,40 @@ def read_ifdb(ifdb_dict, meas_dict, start_ts=None, stop_ts=None):
 
         df = df.rename(columns={"_time": "datetime"})
         df["datetime"] = df.datetime.dt.tz_convert(None)
-        logger.debug(f"\n{df}")
+        logger.debug(df)
         return df
+
+
+def just_read(ifdb_dict, meas_dict, client, start_ts=None, stop_ts=None):
+    logger.debug(f"Running query from {start_ts} to {stop_ts}")
+
+    bucket = ifdb_dict.get("bucket")
+    measurement = meas_dict.get("measurement")
+    fields = list(meas_dict.get("fields").split(","))
+
+    if start_ts is not None:
+        start = mk_ifdb_ts(start_ts)
+    else:
+        start = 0
+
+    if stop_ts is not None:
+        stop = mk_ifdb_ts(stop_ts)
+    else:
+        stop = "now()"
+
+    q_api = client.query_api()
+    query = mk_query(bucket, start, stop, measurement, fields)
+    logger.debug(query)
+    try:
+        df = q_api.query_data_frame(query)[["_time"] + fields]
+    except Exception:
+        logger.info(f"No data with query:\n {query}")
+        return None
+
+    df = df.rename(columns={"_time": "datetime"})
+    df["datetime"] = df.datetime.dt.tz_convert(None)
+    logger.debug(df)
+    return df
 
 
 def add_cols_to_ifdb_q(df, meas_dict):
@@ -178,7 +207,7 @@ def add_cols_to_ifdb_q(df, meas_dict):
     df["numeric_time"] = time_to_numeric(df["TIME"].values)
     df["numeric_datetime"] = df["numeric_time"] + df["numeric_date"]
     df.set_index("datetime", inplace=True)
-    logger.debug(f"\n{df}")
+    logger.debug(df)
     return df
 
 

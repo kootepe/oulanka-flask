@@ -11,6 +11,7 @@ def create_layout():
             html.Div(id="measurement-info", style={"padding": "20px 0"}),
             html.Button("Previous", id="prev-button", n_clicks=0),
             html.Button("Next", id="next-button", n_clicks=0),
+            dcc.Checklist({1: "Skip invalid"}, id="skip-invalid"),
             html.Div(
                 [
                     html.Button("Find lagtime", id="find-max", n_clicks=0),
