@@ -5,17 +5,17 @@ def create_layout():
     graph_style = {"height": "300px", "width": "900px"}
     return html.Div(
         [
-            dcc.Store(id="stored-index", data=0),
-            dcc.Store(id="stored-chamber", data="All"),
-            html.Div(id="chamber-buttons"),
-            html.Div(id="measurement-info", style={"padding": "20px 0"}),
             html.Button("Previous", id="prev-button", n_clicks=0),
             html.Button("Next", id="next-button", n_clicks=0),
+            html.Div(id="chamber-buttons"),
+            html.Div(id="measurement-info", style={"padding": "20px 0"}),
             dcc.Checklist({1: "Skip invalid"}, id="skip-invalid"),
             html.Div(
                 [
                     html.Button("Find lagtime", id="find-max", n_clicks=0),
                     html.Button("Delete lagtime", id="del-lagtime", n_clicks=0),
+                    html.Button("Push all", id="push-all", n_clicks=0),
+                    html.Button("Push current lagtime", id="push-lag", n_clicks=0),
                 ]
             ),
             html.Div(
@@ -36,5 +36,8 @@ def create_layout():
                 style={"display": "flex"},
             ),
             html.Div(id="output"),
+            dcc.Store(id="stored-index", data=0),
+            dcc.Store(id="stored-chamber", data="All"),
+            dcc.Store(id="relayout-data", data=None),
         ]
     )

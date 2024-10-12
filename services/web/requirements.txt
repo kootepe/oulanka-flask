@@ -1,6 +1,7 @@
 dash==2.18.1
 dash_bootstrap_components==1.6.0
 dash_core_components==2.0.0
+dash_extensions==1.0.18
 dash_html_components==2.0.0
 dash_table==5.0.0
 dill==0.3.9

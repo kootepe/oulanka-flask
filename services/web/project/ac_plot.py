@@ -15,7 +15,8 @@ def ac_plot(flask_app):
     logger = init_logger()
     with open("project/config.json", "r") as f:
         config = json.load(f)
-        ifdb_dict = config["ifdb_dict"]
+        ifdb_read_dict = config["ifdb_read_dict"]
+        ifdb_push_dict = config["ifdb_push_dict"]
 
     with open("project/cycle.json", "r") as f:
         cycles = json.load(f)["CYCLE"]
@@ -62,18 +63,6 @@ def ac_plot(flask_app):
     app.layout = create_layout()
 
     @app.callback(
-        Output("stored-index", "value"),
-        [
-            Input("lag-graph", "clickData"),
-        ],
-        State("stored-index", "data"),
-    )
-    def jump_to_graph(clickdata, current_index):
-        if clickdata is None:
-            return current_index
-        return clickdata.get("customdata")
-
-    @app.callback(
         Output("chamber-buttons", "children"),
         Input("output", "children"),
     )
@@ -88,30 +77,20 @@ def ac_plot(flask_app):
 
         Returns
         -------
-        buttons : [html.Button, ...]
-            list of html.Button labeled with chamber IDs
-
+        buttons : list of dcc.Checklist or html.Button for multi-selection
 
 
         """
-        buttons = [
-            html.Button(
-                "All",
-                id={"type": "dynamic-button", "index": "All"},
-                n_clicks=0,
-                style={"width": "50px", "height": "25px"},
-            )
+        # Use Checklist for multi-select functionality
+        options = [
+            {"label": chamber, "value": chamber} for chamber in cycle_dict.keys()
         ]
-        buttons += [
-            html.Button(
-                chamber,
-                id={"type": "dynamic-button", "index": chamber},
-                n_clicks=0,
-                style={"width": "50px", "height": "25px"},
-            )
-            for chamber in cycle_dict.keys()
-        ]
-        return buttons
+        return dcc.Checklist(
+            id="chamber-select",
+            options=options,
+            value=[],  # Default no selections
+            inline=True,
+        )
 
     @app.callback(
         Output("ch4-graph", "figure"),
@@ -124,7 +103,7 @@ def ac_plot(flask_app):
         Input("next-button", "n_clicks"),
         Input("find-max", "n_clicks"),
         Input("del-lagtime", "n_clicks"),
-        [Input({"type": "dynamic-button", "index": dash.dependencies.ALL}, "n_clicks")],
+        Input("chamber-select", "value"),
         State("stored-index", "data"),
         State("stored-chamber", "data"),
         [Input("lag-graph", "clickData")],
@@ -135,20 +114,35 @@ def ac_plot(flask_app):
         next_clicks,
         find_max,
         del_lagtime,
-        cham_n_clicks,
+        selected_chambers,
         index,
         chamber,
         lag_graph,
         skip_invalid,
     ):
-        chamber_measurements = (
-            all_measurements if chamber == "All" else cycle_dict[chamber]
+        if not selected_chambers:
+            selected_chambers = cycle_dict.keys()
+        chamber_measurements = sorted(
+            [
+                measurement
+                for chamber in selected_chambers
+                for measurement in cycle_dict.get(chamber, [])
+            ],
+            key=lambda x: x.open,
         )
+        if not chamber_measurements:
+            return (
+                Figure(),
+                Figure(),
+                Figure(),
+                "No data available",
+                0,
+                selected_chambers,
+            )
+
         if not ctx.triggered:
             # Handle the case when no button is triggered
             index = 0  # Reset index or any default value you'd like to set
-            chamber = "All"  # Set a default chamber or any default value
-            chamber_measurements = all_measurements  # Default to all measurements
             triggered_id = None
         # Safeguard to check for triggered input
         else:
@@ -157,6 +151,8 @@ def ac_plot(flask_app):
             if triggered_id == "lag-graph":
                 pt = lag_graph.get("points")[0]
                 index = pt.get("customdata")[2]
+            elif triggered_id == "chamber-select":
+                index = 0
             elif triggered_id == "prev-button":
                 index = decrement_index(index, chamber_measurements)
             elif triggered_id == "next-button":
@@ -167,19 +163,20 @@ def ac_plot(flask_app):
                 or triggered_id == "skip-invalid"
             ):
                 pass  # Additional logic for find-max button can be placed here
-            elif triggered_id.get("type") == "dynamic-button":
-                chamber = triggered_id["index"]
-                chamber_measurements = (
-                    all_measurements if chamber == "All" else cycle_dict[chamber]
-                )
-                index = 0
 
         # Retrieve the current measurement based on the updated index
         measurement = chamber_measurements[index]
+
+        if skip_invalid and triggered_id == "chamber-select":
+            while measurement.is_valid is False:
+                index = increment_index(index, chamber_measurements)
+                measurement = chamber_measurements[index]
+
         if skip_invalid and triggered_id == "next-button":
             while measurement.is_valid is False:
                 index = increment_index(index, chamber_measurements)
                 measurement = chamber_measurements[index]
+
         if skip_invalid and triggered_id == "prev-button":
             while measurement.is_valid is False:
                 index = decrement_index(index, chamber_measurements)
@@ -188,7 +185,7 @@ def ac_plot(flask_app):
 
         # Ensure measurement data is loaded
         if measurement.data is None and measurement.is_valid is True:
-            measurement.get_data(ifdb_dict)
+            measurement.get_data(ifdb_read_dict)
 
         if triggered_id == "find-max":
             measurement.find_max("CH4")
@@ -201,7 +198,7 @@ def ac_plot(flask_app):
             fig_ch4 = create_plot(measurement, "CH4")
             fig_co2 = create_plot(measurement, "CO2", color_key="green")
 
-        lag_graph = mk_lag_graph(chamber_measurements, [measurement], ifdb_dict)
+        lag_graph = mk_lag_graph(chamber_measurements, [measurement], ifdb_read_dict)
         measurement_info = f"Measurement {index + 1}/{len(chamber_measurements)} - Date: {measurement.start.date()}"
 
         return fig_ch4, fig_co2, lag_graph, measurement_info, index, chamber

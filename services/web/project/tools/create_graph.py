@@ -1,7 +1,10 @@
-from project.tools.influxdb_funcs import init_client
+from project.tools.influxdb_funcs import init_client, just_read
 import plotly.graph_objs as go
 import plotly.express as px
 import pandas as pd
+import logging
+
+logger = logging.getLogger("defaultLogger")
 
 
 def create_plot(measurement, gas, color_key="blue"):
@@ -51,7 +54,6 @@ def create_plot(measurement, gas, color_key="blue"):
     )
 
     layout = go.Layout(
-        yaxis_title="Value",
         # width=1000,
         # height=300,
         title={
@@ -62,10 +64,10 @@ def create_plot(measurement, gas, color_key="blue"):
             # "yanchor": "top",  # Anchoring the title vertically
         },
         margin=dict(
-            l=20,
-            r=20,
-            t=40,
-            b=20,
+            l=10,
+            r=10,
+            t=25,
+            b=10,
         ),
         xaxis=dict(type="date"),
     )
@@ -85,6 +87,7 @@ def mk_lag_graph(measurements, current_measurement, ifdb_dict):
     # Extract data from each measurement and store in a list of tuples
     data = [(m.open, m.lagtime_s, m.id) for m in measurements]
     data2 = [(m.open, m.lagtime_s, m.id) for m in current_measurement]
+    print(data2)
 
     # Create a pandas DataFrame from the list
     df = pd.DataFrame(data, columns=["open", "lagtime", "id"]).set_index("open")
@@ -122,24 +125,22 @@ def mk_lag_graph(measurements, current_measurement, ifdb_dict):
         showlegend=False,
     )
     layout = go.Layout(
-        xaxis_title="Open Time",
-        yaxis_title="Lag Time (s)",
         template="plotly_white",
         hovermode="closest",
         # width=1000,
         # height=300,
         title={
-            "text": "Scatter Plot of Lag Time vs. Open Time",
+            "text": "Lag time",
             # "x": 0.33,  # Horizontal position of the title (0 - left, 0.5 - center, 1 - right)
             # "y": 0.82,  # Vertical position of the title, with 1 being the top
             # "xanchor": "center",  # Anchoring the title horizontally
             # "yanchor": "top",  # Anchoring the title vertically
         },
         margin=dict(
-            l=20,
-            r=20,
-            t=40,
-            b=20,
+            l=10,
+            r=10,
+            t=30,
+            b=10,
         ),
         xaxis=dict(type="date", showspikes=True),
         yaxis=dict(showspikes=True),
@@ -148,6 +149,102 @@ def mk_lag_graph(measurements, current_measurement, ifdb_dict):
         data=[trace_data, highlighter],
         layout=layout,
     )
+    fig.add_hline(y=0, line_dash="dash", line_color="blue", line_width=1)
+
+    return fig
+
+
+def mk_lag_graph_db(measurements, current_measurement, ifdb_dict):
+    logger.debug("Creating lag graph.")
+    with init_client(ifdb_dict) as client:
+        # Extract data from each measurement and store in a list of tuples
+        # data = [(m.open, m.lagtime_s, m.id) for m in measurements]
+        current_measurement.get_max(ifdb_dict, client)
+    # data2 = [(m.close, m.lagtime_s, m.id) for m in current_measurement]
+    data2 = [
+        (
+            current_measurement.close,
+            current_measurement.lagtime_s,
+            current_measurement.id,
+        )
+    ]
+
+    tz = "Europe/Helsinki"
+    start_ts = measurements[0].close - pd.Timedelta(minutes=1)
+    end_ts = measurements[-1].close + pd.Timedelta(minutes=1)
+    meas_dict = {"measurement": "flux_point", "fields": "id,lagtime"}
+
+    with init_client(ifdb_dict) as client:
+        df = just_read(ifdb_dict, meas_dict, client, start_ts=start_ts, stop_ts=end_ts)
+        df.set_index("datetime", inplace=True)
+        df.index = pd.to_datetime(df.index)
+        df = df.tz_convert(tz)
+        df.sort_index(inplace=True)
+
+    # Create a pandas DataFrame from the list
+    # df = pd.DataFrame(data, columns=["open", "lagtime", "id"]).set_index("open")
+    df["idx"] = range(len(df))
+    df2 = pd.DataFrame(data2, columns=["close", "lagtime", "id"]).set_index("close")
+    logger.debug(df)
+    # print(df.index)
+    # print(df2.index)
+
+    # Generate a scatter plot with Plotly Graph Objects
+    color_map = create_color_mapping(df, "id")
+    colors = [color_map[val] for val in df["id"]]
+
+    trace_data = go.Scatter(
+        x=df.index,
+        y=df["lagtime"],
+        mode="markers",
+        name="Lag time",
+        marker=dict(
+            color=colors,
+            symbol="x-thin",
+            size=5,
+            line=dict(color=colors, width=2),
+        ),
+        customdata=df,
+    )
+    highlighter = go.Scatter(
+        x=df2.index,
+        y=df2["lagtime"],
+        mode="markers",
+        marker=dict(
+            symbol="circle",
+            size=15,
+            color="rgba(255,0,0,0)",
+            line=dict(color="rgba(255,0,0,1)", width=2),
+        ),
+        hoverinfo="none",
+        showlegend=False,
+    )
+    layout = go.Layout(
+        template="plotly_white",
+        hovermode="closest",
+        # width=1000,
+        # height=300,
+        title={
+            "text": "Lag time",
+            # "x": 0.33,  # Horizontal position of the title (0 - left, 0.5 - center, 1 - right)
+            # "y": 0.82,  # Vertical position of the title, with 1 being the top
+            # "xanchor": "center",  # Anchoring the title horizontally
+            # "yanchor": "top",  # Anchoring the title vertically
+        },
+        margin=dict(
+            l=10,
+            r=10,
+            t=30,
+            b=10,
+        ),
+        xaxis=dict(type="date", showspikes=True),
+        yaxis=dict(showspikes=True),
+    )
+    fig = go.Figure(
+        data=[trace_data, highlighter],
+        layout=layout,
+    )
+    fig.add_hline(y=0, line_dash="dash", line_color="blue", line_width=1)
 
     return fig
 

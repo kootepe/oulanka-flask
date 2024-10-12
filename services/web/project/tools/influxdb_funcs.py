@@ -3,14 +3,12 @@
 import influxdb_client as ifdb
 from influxdb_client.client.write_api import SYNCHRONOUS
 import logging
+import pandas as pd
+import numpy as np
 from urllib3.exceptions import NewConnectionError
-import datetime
 from project.tools.time_funcs import (
-    time_to_numeric,
-    get_time_diff,
     convert_timestamp_format,
 )
-import pandas as pd
 
 logger = logging.getLogger("defaultLogger")
 
@@ -114,7 +112,7 @@ def read_aux_ifdb(dict, s_ts=None, e_ts=None):
 
 
 def read_ifdb(ifdb_dict, meas_dict, start_ts=None, stop_ts=None):
-    logger.debug(f"Running query from {start_ts} to {stop_ts}")
+    # logger.debug(f"Running query from {start_ts} to {stop_ts}")
 
     bucket = ifdb_dict.get("bucket")
     measurement = meas_dict.get("measurement")
@@ -133,7 +131,7 @@ def read_ifdb(ifdb_dict, meas_dict, start_ts=None, stop_ts=None):
     with init_client(ifdb_dict) as client:
         q_api = client.query_api()
         query = mk_query(bucket, start, stop, measurement, fields)
-        logger.debug(query)
+        # logger.debug(query)
         try:
             df = q_api.query_data_frame(query)[["_time"] + fields]
         except Exception:
@@ -142,7 +140,7 @@ def read_ifdb(ifdb_dict, meas_dict, start_ts=None, stop_ts=None):
 
         df = df.rename(columns={"_time": "datetime"})
         df["datetime"] = df.datetime.dt.tz_convert(None)
-        logger.debug(df)
+        # logger.debug(df)
         return df
 
 
@@ -165,53 +163,22 @@ def just_read(ifdb_dict, meas_dict, client, start_ts=None, stop_ts=None):
 
     q_api = client.query_api()
     query = mk_query(bucket, start, stop, measurement, fields)
-    logger.debug(query)
+    # logger.debug(query)
     try:
         df = q_api.query_data_frame(query)[["_time"] + fields]
-    except Exception:
+    except Exception as e:
+        print(e)
         logger.info(f"No data with query:\n {query}")
         return None
 
     df = df.rename(columns={"_time": "datetime"})
     df["datetime"] = df.datetime.dt.tz_convert(None)
     logger.debug(df)
+    # print(df)
     return df
 
 
-def add_cols_to_ifdb_q(df, meas_dict):
-    # NOTE: need to figure out a better way of doing this, maybe a matte
-    # reformatting what columns are expected down the pipeline. Does there need
-    # to be a separate .ini for specifying settings of the whole pipeline?
-    """
-    current version cant use dataframes returned by ifdb as is, this function
-    will add necessary columns
-    """
-    name = meas_dict.get("name")
-    if name == "man_ts":
-        df["start_time"] = df["datetime"]
-        df["end_time"] = df["start_time"] + pd.Timedelta(seconds=300)
-        diff = float(
-            get_time_diff(df.iloc[0]["start_time"], df.iloc[0]["end_time"])
-        ) * (20 / 100)
-        df["open_time"] = df["end_time"] - pd.to_timedelta(diff, unit="s")
-        df["close_time"] = df["start_time"] + pd.to_timedelta(diff, unit="s")
-        # df["chamber"] = df["Plot Number"]
-    # df["datetime"] = df.datetime.dt.tz_convert(None)
-    df["DATE"] = df["datetime"].dt.strftime("%Y-%m-%d")
-    df["TIME"] = df["datetime"].dt.strftime("%H:%M:%S")
-    df["checks"] = ""
-    df["is_valid"] = ""
-
-    logger.info("Calculating ordinal times.")
-    df["numeric_date"] = pd.to_datetime(df["DATE"]).map(datetime.datetime.toordinal)
-    df["numeric_time"] = time_to_numeric(df["TIME"].values)
-    df["numeric_datetime"] = df["numeric_time"] + df["numeric_date"]
-    df.set_index("datetime", inplace=True)
-    logger.debug(df)
-    return df
-
-
-def ifdb_push(df, ifdb_dict, tag_columns):
+def ifdb_push(df, client, ifdb_dict, tag_columns):
     """
     Push data to InfluxDB
 
@@ -224,163 +191,20 @@ def ifdb_push(df, ifdb_dict, tag_columns):
     ---
 
     """
-    with ifdb.InfluxDBClient(
-        url=ifdb_dict.get("url"),
-        token=ifdb_dict.get("token"),
-        org=ifdb_dict.get("organization"),
-    ) as client:
-        write_api = client.write_api(write_options=SYNCHRONOUS)
-        try:
-            write_api.write(
-                bucket=ifdb_dict.get("bucket"),
-                record=df,
-                data_frame_measurement_name=ifdb_dict.get("measurement_name"),
-                data_frame_timestamp_timezone=ifdb_dict.get("timezone"),
-                data_frame_tag_columns=tag_columns,
-                debug=True,
-            )
-        except NewConnectionError:
-            logger.info(f"Couldn't connect to database at " f"{ifdb_dict.get('url')}")
     logger.debug("Attempting push.")
-    print("Attempting push.")
-    url = ifdb_dict.get("url")
     bucket = ifdb_dict.get("bucket")
-    measurement_name = ifdb_dict.get("measurement_name")
-    timezone = ifdb_dict.get("timezone")
+    measurement_name = ifdb_dict.get("measurement")
 
-    with init_client(ifdb_dict) as client:
-        write_api = client.write_api(write_options=SYNCHRONOUS)
-        try:
-            write_api.write(
-                bucket=bucket,
-                record=df,
-                data_frame_measurement_name=measurement_name,
-                data_frame_timestamp_timezone=timezone,
-                # NOTE: figure out a good way of handling tag cols
-                # data_frame_tag_columns="ac",
-                debug=True,
-            )
-        except NewConnectionError:
-            logger.info(f"Couldn't connect to database at {url}")
-            pass
-
-        first = str(df.index[0])
-        last = str(df.index[-1])
-        logging.info(f"Pushed data between {first}-{last} to DB")
-
-
-def check_oldest_db_ts(ifdb_dict, meas_dict, gas_cols):
-    """
-    Extract latest date from influxDB
-
-    args:
-    ---
-
-    returns:
-    ---
-    Tables -- object with infludbtimestamps
-    """
-    url = ifdb_dict.get("url")
-    token = ifdb_dict.get("token")
-    org = ifdb_dict.get("organization")
-    bucket = ifdb_dict.get("bucket")
-
-    measurement = meas_dict.get("measurement")
-    # inflxudb query to get the timestamp of the last input
-    query = (
-        f'from(bucket: "{ifdb_dict.get("bucket")}")'
-        "|> range(start: 0, stop: now())"
-        f'|> filter(fn: (r) => r["_measurement"] == "{ifdb_dict.get("measurement_name")}")'
-        '|> keep(columns: ["_time"])'
-        '|> sort(columns: ["_time"], desc: false)'
-        '|> last(column: "_time")'
-    )
-    # NOTE: this query needs to be optimized, it currently fetches all data to
-    # check for a single timestamp
-    query = mk_oldest_ts_q(bucket, measurement, gas_cols)
-
-    client = ifdb.InfluxDBClient(
-        url=url,
-        token=token,
-        org=org,
-    )
+    write_api = client.write_api(write_options=SYNCHRONOUS)
     try:
-        tables = client.query_api().query(query=query)
-    except NewConnectionError:
-        logging.warning(f"Couldn't connect to database at {url}")
-        return None
-    try:
-        oldest_ts = tables[0].records[0]["_time"].replace(tzinfo=None)
-    except IndexError:
-        logging.warning(
-            "Couldn't get timestamp from influxdb, using season_start from .ini"
+        write_api.write(
+            bucket=bucket,
+            record=df,
+            data_frame_measurement_name=measurement_name,
+            # NOTE: figure out a good way of handling tag cols
+            data_frame_tag_columns=tag_columns,
+            debug=True,
         )
-        return None
-
-    return oldest_ts
-
-
-def check_newest_db_ts(ifdb_dict, meas_dict, gas_cols):
-    """
-    Extract latest date from influxDB
-    Faster query here if you can get it working:
-    ############
-    indices = {
-        _data = from(bucket: "Desktop")
-            |> range(start: 0)
-            |> filter(fn: (r) => r._measurement == "Simulated" and r._field == "index")
-            |> limit(n: 1000)
-
-        return union(tables:[
-            _data |> first(),
-            _data |> last(),
-        ]) |> findColumn(fn: (key) => true, column: "_time")
-    }
-    // Returns a array with the first time as the first element and the
-    // last time as the second element
-
-    // Use an array reference to reference the timestamps
-    rstart = indices[0]
-    rstop = indices[1]
-    ############
-    query from:
-    https://community.influxdata.com/t/how-to-efficiently-get-the-timestamp-of-the-first-and-last-records-in-a-table/23901
-
-
-
-    args:
-    ---
-
-    returns:
-    ---
-    Tables -- object with infludbtimestamps
-    """
-    url = ifdb_dict.get("url")
-    token = ifdb_dict.get("token")
-    org = ifdb_dict.get("organization")
-    bucket = ifdb_dict.get("bucket")
-    # measurement_name = influxdb_dict.get("measurement_name")
-
-    measurement = meas_dict.get("measurement")
-    # inflxudb query to get the timestamp of the last input
-    query = mk_newest_ts_q(bucket, measurement, gas_cols)
-
-    client = ifdb.InfluxDBClient(
-        url=url,
-        token=token,
-        org=org,
-    )
-    try:
-        tables = client.query_api().query(query=query)
-    except NewConnectionError:
-        logging.warning(f"Couldn't connect to database at {url}")
-        return None
-    try:
-        newest_ts = tables[0].records[0]["_time"].replace(tzinfo=None)
-    except IndexError:
-        logging.warning(
-            "Couldn't get timestamp from influxdb, using season_start from .ini"
-        )
-        return None
-
-    return newest_ts
+    except Exception as e:
+        print(e)
+        print("No pushing")
