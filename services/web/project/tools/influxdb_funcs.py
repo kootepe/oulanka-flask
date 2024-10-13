@@ -43,14 +43,31 @@ def mk_meas_q(measurement):
     return f'\t|> filter(fn: (r) => r["_measurement"] == "{measurement}")\n'
 
 
-def mk_query(bucket, start, stop, measurement, fields):
-    query = (
-        f"{mk_bucket_q(bucket)}"
-        f"{mk_range_q(start, stop)}"
-        f"{mk_meas_q(measurement)}"
-        f"{mk_field_q(fields)}"
-        '\t|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")'
-    )
+def mk_query(bucket, start, stop, measurement, fields, array_filter=None):
+    if array_filter:
+        # arr = array_filter["arr"]
+        arr = str(array_filter["arr"]).replace("'", '"')
+        tag = array_filter["tag"]
+
+        query = (
+            f"arr = {arr}\n"
+            f"{mk_bucket_q(bucket)}"
+            f"{mk_range_q(start, stop)}"
+            f"{mk_meas_q(measurement)}"
+            f"{mk_field_q(fields)}"
+            f'\t|> filter(fn: (r) => contains(value: r["{tag}"], set: arr))\n'
+            '\t|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")'
+        )
+        pass
+    else:
+        query = (
+            f"{mk_bucket_q(bucket)}"
+            f"{mk_range_q(start, stop)}"
+            f"{mk_meas_q(measurement)}"
+            f"{mk_field_q(fields)}"
+            '\t|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")'
+        )
+
     return query
 
 
@@ -111,7 +128,7 @@ def read_aux_ifdb(dict, s_ts=None, e_ts=None):
         return df
 
 
-def read_ifdb(ifdb_dict, meas_dict, start_ts=None, stop_ts=None):
+def read_ifdb(ifdb_dict, meas_dict, start_ts=None, stop_ts=None, arr=None):
     # logger.debug(f"Running query from {start_ts} to {stop_ts}")
 
     bucket = ifdb_dict.get("bucket")
@@ -130,8 +147,7 @@ def read_ifdb(ifdb_dict, meas_dict, start_ts=None, stop_ts=None):
 
     with init_client(ifdb_dict) as client:
         q_api = client.query_api()
-        query = mk_query(bucket, start, stop, measurement, fields)
-        # logger.debug(query)
+        query = mk_query(bucket, start, stop, measurement, fields, arr)
         try:
             df = q_api.query_data_frame(query)[["_time"] + fields]
         except Exception:
@@ -139,12 +155,10 @@ def read_ifdb(ifdb_dict, meas_dict, start_ts=None, stop_ts=None):
             return None
 
         df = df.rename(columns={"_time": "datetime"})
-        df["datetime"] = df.datetime.dt.tz_convert(None)
-        # logger.debug(df)
         return df
 
 
-def just_read(ifdb_dict, meas_dict, client, start_ts=None, stop_ts=None):
+def just_read(ifdb_dict, meas_dict, client, start_ts=None, stop_ts=None, arr=None):
     logger.debug(f"Running query from {start_ts} to {stop_ts}")
 
     bucket = ifdb_dict.get("bucket")
@@ -162,19 +176,16 @@ def just_read(ifdb_dict, meas_dict, client, start_ts=None, stop_ts=None):
         stop = "now()"
 
     q_api = client.query_api()
-    query = mk_query(bucket, start, stop, measurement, fields)
-    # logger.debug(query)
+    query = mk_query(bucket, start, stop, measurement, fields, arr)
+    logger.debug(query)
     try:
         df = q_api.query_data_frame(query)[["_time"] + fields]
     except Exception as e:
-        print(e)
+        logger.debug(e)
         logger.info(f"No data with query:\n {query}")
         return None
 
     df = df.rename(columns={"_time": "datetime"})
-    df["datetime"] = df.datetime.dt.tz_convert(None)
-    logger.debug(df)
-    # print(df)
     return df
 
 
@@ -196,6 +207,11 @@ def ifdb_push(df, client, ifdb_dict, tag_columns):
     measurement_name = ifdb_dict.get("measurement")
 
     write_api = client.write_api(write_options=SYNCHRONOUS)
+    dc = ifdb_dict
+    print(f"Writing {dc.get('measurement')} to {dc.get('url')} {dc.get('bucket')}")
+    print("data:")
+    print(df.head())
+    print(df.tail())
     try:
         write_api.write(
             bucket=bucket,

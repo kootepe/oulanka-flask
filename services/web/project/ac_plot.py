@@ -4,11 +4,13 @@ import pandas as pd
 import json
 from datetime import datetime, timedelta
 from plotly.graph_objs import Figure
+from pprint import pprint
 
 from project.ac_layout import create_layout
-from project.tools.create_graph import create_plot, mk_lag_graph
-from project.tools.measurement import MeasurementCycle
 from project.tools.logger import init_logger
+from project.tools.measurement import MeasurementCycle
+from project.tools.influxdb_funcs import init_client, ifdb_push
+from project.tools.create_graph import create_plot, mk_lag_graph, mk_lag_graph_old
 
 
 def ac_plot(flask_app):
@@ -21,28 +23,13 @@ def ac_plot(flask_app):
     with open("project/cycle.json", "r") as f:
         cycles = json.load(f)["CYCLE"]
 
-    def generate_year():
-        today = datetime.today()
-        return [(today - timedelta(days=i)).date() for i in range(365)][::-1]
-
     def generate_month():
         today = datetime.today()
         return [(today - timedelta(days=i)).date() for i in range(60)][::-1]
 
-    def generate_week():
-        today = datetime.today()
-        return [(today - timedelta(days=i)).date() for i in range(7)][::-1]
-
-    def generate_day():
-        today = datetime.today()
-        return [(today - timedelta(days=i)).date() for i in range(1)][::-1]
-
     # Generate measurement cycle
     all_measurements = []
-    hours = generate_day()
-    week = generate_week()
     month = generate_month()
-    year = generate_year()
     for day in month:
         for cycle in cycles:
             if pd.Timestamp(f"{day} {cycle.get('START')}") > datetime.now():
@@ -100,10 +87,12 @@ def ac_plot(flask_app):
         Output("stored-index", "data"),
         Output("stored-chamber", "data"),
         State("lag-graph", "relayoutData"),
+        State("lag-graph", "figure"),
         Input("prev-button", "n_clicks"),
         Input("next-button", "n_clicks"),
         Input("find-max", "n_clicks"),
         Input("del-lagtime", "n_clicks"),
+        Input("push-all", "n_clicks"),
         Input("chamber-select", "value"),
         State("stored-index", "data"),
         State("stored-chamber", "data"),
@@ -112,19 +101,21 @@ def ac_plot(flask_app):
     )
     def update_graph(
         lag_state,
+        lag_graph_data,
         prev_clicks,
         next_clicks,
         find_max,
         del_lagtime,
+        push_all,
         selected_chambers,
         index,
         chamber,
-        lag_graph,
+        get_point,
         skip_invalid,
     ):
         if not selected_chambers:
             selected_chambers = cycle_dict.keys()
-        chamber_measurements = sorted(
+        measurements = sorted(
             [
                 measurement
                 for chamber in selected_chambers
@@ -132,7 +123,8 @@ def ac_plot(flask_app):
             ],
             key=lambda x: x.open,
         )
-        if not chamber_measurements:
+        pt = None
+        if not measurements:
             return (
                 Figure(),
                 Figure(),
@@ -144,60 +136,56 @@ def ac_plot(flask_app):
 
         if not ctx.triggered:
             # Handle the case when no button is triggered
-            index = 0  # Reset index or any default value you'd like to set
             triggered_id = None
         # Safeguard to check for triggered input
         else:
-            # Directly access ctx.triggered_id as a dictionary
             triggered_id = ctx.triggered_id if ctx.triggered else None
             if triggered_id == "lag-graph":
-                pt = lag_graph.get("points")[0]
+                pt = get_point.get("points")[0]
                 index = pt.get("customdata")[2]
-                if lag_graph:
-                    pt = lag_graph.get("points")[0]
-                    index = pt.get("customdata")[2]
-                # pt = lag_graph.get("points")[0]
-                # index = pt.get("customdata")[2]
+                y_value = pt["y"]
+
             elif triggered_id == "chamber-select":
                 index = 0
+
             elif triggered_id == "prev-button":
-                index = decrement_index(index, chamber_measurements)
+                index = decrement_index(index, measurements)
+
             elif triggered_id == "next-button":
-                index = increment_index(index, chamber_measurements)
-            elif (
-                triggered_id == "find-max"
-                or triggered_id == "del-lagtime"
-                or triggered_id == "skip-invalid"
-            ):
-                pass  # Additional logic for find-max button can be placed here
+                index = increment_index(index, measurements)
 
-        # Retrieve the current measurement based on the updated index
-        measurement = chamber_measurements[index]
+        # current measurement is the current index
+        measurement = measurements[index]
 
-        if skip_invalid and triggered_id == "chamber-select":
-            while measurement.is_valid is False:
-                index = increment_index(index, chamber_measurements)
-                measurement = chamber_measurements[index]
-
-        if skip_invalid and triggered_id == "next-button":
-            while measurement.is_valid is False:
-                index = increment_index(index, chamber_measurements)
-                measurement = chamber_measurements[index]
-
-        if skip_invalid and triggered_id == "prev-button":
-            while measurement.is_valid is False:
-                index = decrement_index(index, chamber_measurements)
-                measurement = chamber_measurements[index]
-        measurement = chamber_measurements[index]
+        # print(triggered_id)
+        # print(skip_invalid)
+        # if skip_invalid and triggered_id in [
+        #     "skip-invalid",
+        #     "chamber-select",
+        #     "next-button",
+        #     "prev-button",
+        # ]:
+        #     print(measurement.is_valid)
+        #     print(measurement.data)
+        #     while measurement.data is None:
+        #         print("Running skip")
+        #         measurement, index = skip_invalids(
+        #             index, skip_invalid, triggered_id, measurement, measurements
+        #         )
 
         # Ensure measurement data is loaded
         if measurement.data is None and measurement.is_valid is True:
             measurement.get_data(ifdb_read_dict)
+            measurement.get_max()
 
         if triggered_id == "find-max":
-            measurement.find_max("CH4")
+            measurement.get_max()
         if triggered_id == "del-lagtime":
             measurement.del_lagtime()
+        if triggered_id == "push-all":
+            push_all_data(ifdb_read_dict, ifdb_push_dict, measurements)
+        if triggered_id == "push-lag":
+            push_one_lag(ifdb_push_dict, measurement)
 
         fig_ch4 = Figure()
         fig_co2 = Figure()
@@ -206,15 +194,46 @@ def ac_plot(flask_app):
             fig_co2 = create_plot(measurement, "CO2", color_key="green")
 
         lag_graph = mk_lag_graph(
-            chamber_measurements, measurement, ifdb_push_dict, selected_chambers
+            measurements, measurement, ifdb_push_dict, selected_chambers, index
         )
-        print(lag_state)
+        # # lag_graph = mk_lag_graph_old(measurements, [measurement], ifdb_read_dict)
         if lag_graph_zoom(lag_state):
             lag_graph.update_layout(lag_graph_zoom(lag_state))
+
+        if triggered_id == "lag-graph" and get_point:
+            lag_graph.data[1].update(x=[pt["x"]], y=[y_value])
+
         logger.debug(f"lag_state:\n{lag_state}")
-        measurement_info = f"Measurement {index + 1}/{len(chamber_measurements)} - Date: {measurement.start.date()}"
+
+        if measurement.is_valid is True:
+            valid_str = "Valid: True"
+        else:
+            valid_str = "Valid: False"
+        measurement_info = f"Measurement {index + 1}/{len(measurements)} - Date: {measurement.start.date()} {valid_str}"
 
         return fig_ch4, fig_co2, lag_graph, measurement_info, index, chamber
+
+    # def skip_invalids(index, skip_invalid, triggered_id, measurement, measurements):
+    #     while measurement.data is None:
+    #         measurement.get_data(ifdb_read_dict)
+    #         index = (
+    #             increment_index(index, measurements)
+    #             if triggered_id == "next-button"
+    #             else decrement_index(index, measurements)
+    #         )
+    #
+    #         # print(measurement.is_valid)
+    #         # print("Skipping, not valid")
+    #         # print(index)
+    #         # print(triggered_id)
+    #         # if triggered_id == "next-button":
+    #         #     index = increment_index(index, measurements)
+    #         # elif triggered_id == "prev-button":
+    #         #     index = decrement_index(index, measurements)
+    #         # elif triggered_id == "prev-button":
+    #         #     index = decrement_index(index, measurements)
+    #         measurement = measurements[index]
+    #     return measurement, index
 
     def lag_graph_zoom(lag_state_dict):
         lag_graph_layout = {"xaxis": {"range": None}, "yaxis": {"range": None}}
@@ -236,6 +255,27 @@ def ac_plot(flask_app):
                     lag_state_dict["yaxis.range[1]"],
                 ]
         return lag_graph_layout
+
+    def push_all_data(read_dict, push_dict, measurements):
+        tag_cols = ["chamber"]
+        with init_client(ifdb_read_dict) as client:
+            [m.just_get_data(read_dict, client) for m in measurements]
+        data = [(m.close, m.lagtime_s, int(m.id), int(m.id)) for m in measurements]
+        df = pd.DataFrame(
+            data, columns=["close", "lagtime", "id", "chamber"]
+        ).set_index("close")
+        print(df["lagtime"].isnull().sum())
+
+        with init_client(push_dict) as client:
+            ifdb_push(df, client, push_dict, tag_cols)
+
+    def push_one_lag(ifdb_dict, measurement):
+        tag_cols = ["id"]
+        data = [(measurement.close, measurement.lagtime_s, int(measurement.id))]
+        df = pd.DataFrame(data, columns=["close", "lagtime", "id"]).set_index("close")
+
+        with init_client(ifdb_dict) as client:
+            ifdb_push(df, client, ifdb_dict, tag_cols)
 
     def decrement_index(index, measurements):
         return (index - 1) % len(measurements)

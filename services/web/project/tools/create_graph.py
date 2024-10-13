@@ -1,4 +1,4 @@
-from project.tools.influxdb_funcs import init_client, just_read
+from project.tools.influxdb_funcs import init_client, just_read, read_ifdb
 import plotly.graph_objs as go
 import plotly.express as px
 import pandas as pd
@@ -81,7 +81,7 @@ def create_plot(measurement, gas, color_key="blue"):
     return fig
 
 
-def mk_lag_graph(measurements, current_measurement, ifdb_dict):
+def mk_lag_graph_old(measurements, current_measurement, ifdb_dict):
     with init_client(ifdb_dict) as client:
         [m.get_max(ifdb_dict, client) for m in measurements]
     # Extract data from each measurement and store in a list of tuples
@@ -93,6 +93,7 @@ def mk_lag_graph(measurements, current_measurement, ifdb_dict):
     df = pd.DataFrame(data, columns=["open", "lagtime", "id"]).set_index("open")
     df["idx"] = range(len(df))
     df2 = pd.DataFrame(data2, columns=["open", "lagtime", "id"]).set_index("open")
+    print(df)
 
     # Generate a scatter plot with Plotly Graph Objects
     color_map = create_color_mapping(df, "id")
@@ -154,13 +155,11 @@ def mk_lag_graph(measurements, current_measurement, ifdb_dict):
     return fig
 
 
-def mk_lag_graph_db(measurements, current_measurement, ifdb_dict):
+def mk_lag_graph(
+    measurements, current_measurement, ifdb_dict, selected_chambers, index
+):
     logger.debug("Creating lag graph.")
-    with init_client(ifdb_dict) as client:
-        # Extract data from each measurement and store in a list of tuples
-        # data = [(m.open, m.lagtime_s, m.id) for m in measurements]
-        current_measurement.get_max(ifdb_dict, client)
-    # data2 = [(m.close, m.lagtime_s, m.id) for m in current_measurement]
+    current_measurement = measurements[index]
     data2 = [
         (
             current_measurement.close,
@@ -173,19 +172,21 @@ def mk_lag_graph_db(measurements, current_measurement, ifdb_dict):
     start_ts = measurements[0].close - pd.Timedelta(minutes=1)
     end_ts = measurements[-1].close + pd.Timedelta(minutes=1)
     meas_dict = {"measurement": "flux_point", "fields": "id,lagtime"}
+    arr_str = [str(id) for id in selected_chambers]
+    tag = "chamber"
+    q_arr = {"tag": tag, "arr": arr_str}
 
-    with init_client(ifdb_dict) as client:
-        df = just_read(ifdb_dict, meas_dict, client, start_ts=start_ts, stop_ts=end_ts)
-        df.set_index("datetime", inplace=True)
-        df.index = pd.to_datetime(df.index)
-        df = df.tz_convert(tz)
-        df.sort_index(inplace=True)
+    df = read_ifdb(ifdb_dict, meas_dict, start_ts=start_ts, stop_ts=end_ts, arr=q_arr)
+    df.set_index("datetime", inplace=True)
+    df.index = pd.to_datetime(df.index)
+    df.sort_index(inplace=True)
 
     # Create a pandas DataFrame from the list
     # df = pd.DataFrame(data, columns=["open", "lagtime", "id"]).set_index("open")
     df["idx"] = range(len(df))
+    print(df)
     df2 = pd.DataFrame(data2, columns=["close", "lagtime", "id"]).set_index("close")
-    logger.debug(df)
+    # logger.debug(df)
     # print(df.index)
     # print(df2.index)
 
@@ -205,6 +206,7 @@ def mk_lag_graph_db(measurements, current_measurement, ifdb_dict):
             line=dict(color=colors, width=2),
         ),
         customdata=df,
+        hoverinfo="all",
     )
     highlighter = go.Scatter(
         x=df2.index,

@@ -16,7 +16,8 @@ def create_layout():
                     html.Button("Delete lagtime", id="del-lagtime", n_clicks=0),
                     html.Button("Push all", id="push-all", n_clicks=0),
                     html.Button("Push current lagtime", id="push-lag", n_clicks=0),
-                ]
+                ],
+                style={"margin-bottom": "10px"},
             ),
             html.Div(
                 [
