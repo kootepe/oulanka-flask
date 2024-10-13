@@ -99,35 +99,6 @@ def mk_ifdb_ts(ts):
     return ts.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def read_aux_ifdb(dict, s_ts=None, e_ts=None):
-    bucket = dict.get("bucket")
-    measurement = dict.get("measurement_name")
-    fields = list(dict.get("field").split(","))
-
-    logger.debug(s_ts)
-    if s_ts is not None:
-        s_ts = convert_timestamp_format(s_ts, "%Y-%m-%dT%H:%M:%SZ")
-        logger.debug(s_ts)
-    if e_ts is not None:
-        e_ts = convert_timestamp_format(e_ts, "%Y-%m-%dT%H:%M:%SZ")
-
-    with init_client(dict) as client:
-        q_api = client.query_api()
-        query = mk_query(bucket, s_ts, e_ts, measurement, fields)
-        # logger.debug("Query:\n" + query)
-        try:
-            df = q_api.query_data_frame(query)[["_time"] + fields]
-        except Exception:
-            logger.info(f"No data with query:\n {query}")
-            return None
-
-        df = df.rename(columns={"_time": "datetime"})
-        df["datetime"] = df.datetime.dt.tz_convert(None)
-        df.set_index("datetime", inplace=True)
-        logger.debug(df)
-        return df
-
-
 def read_ifdb(ifdb_dict, meas_dict, start_ts=None, stop_ts=None, arr=None):
     # logger.debug(f"Running query from {start_ts} to {stop_ts}")
 

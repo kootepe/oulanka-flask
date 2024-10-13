@@ -11,11 +11,13 @@ logger = logging.getLogger("defaultLogger")
 class MeasurementCycle:
     def __init__(self, id, start, close, open, end, data=None):
         self.id = id
-        self.start = start
-        self.close = close
-        self.adjusted_close = None
-        self.open = open
-        self.end = end
+        self.close_offset = 240
+        self.open_offset = 720
+        self.og_close = close
+        self.og_start = start
+        self.start = start.tz_localize("Europe/Helsinki").tz_convert("UTC")
+        self.end = end.tz_localize("Europe/Helsinki").tz_convert("UTC")
+        self.lag_end = self.open + pd.Timedelta(seconds=120)
         self.data = data
         self.calc_data = None
         self.lagtime_index = None
@@ -23,34 +25,31 @@ class MeasurementCycle:
         self.is_valid = True
         self.no_data_in_db = False
         self.has_errors = False
-        self.localize_times()
+        self.adjusted_time = False
+        self.manual_valid = None
 
-    def find_max(self):
-        mask1 = self.data.index > self.open
-        mask2 = self.data.index < (self.open + pd.Timedelta(seconds=90))
-        data = self.data[mask1 & mask2]
-        if not data.empty:
-            self.lagtime_index = data["CH4"].idxmax()
-            self.lagtime_s = (self.lagtime_index - self.open).total_seconds()
+    @property
+    def close(self):
+        return self.close_t()
+
+    @property
+    def open(self):
+        return self.open_t()
+
+    def close_t(self):
+        return (
+            self.start
+            + pd.Timedelta(seconds=self.close_offset)
+            + pd.Timedelta(seconds=self.lagtime_s)
+        )
+
+    def open_t(self):
+        return self.start + pd.Timedelta(seconds=self.open_offset)
 
     def del_lagtime(self):
         self.lagtime_index = None
 
-    def localize_times(self):
-        tz = "Europe/Helsinki"
-        self.start = self.start.tz_localize(tz)
-        self.start = self.start.tz_convert("UTC")
-        self.close = self.close.tz_localize(tz)
-        self.close = self.close.tz_convert("UTC")
-        self.open = self.open.tz_localize(tz)
-        self.open = self.open.tz_convert("UTC")
-        self.end = self.end.tz_localize(tz)
-        self.end = self.end.tz_convert("UTC")
-        self.lag_end = self.open + pd.Timedelta(seconds=120)
-
     def just_get_data(self, ifdb_dict, client):
-        if self.is_valid is False:
-            return
         if self.data is None:
             # tz = "Europe/Helsinki"
             meas_dict = {"measurement": "AC LICOR", "fields": "CH4,CO2,DIAG"}
@@ -75,8 +74,6 @@ class MeasurementCycle:
             self.get_max()
 
     def get_data(self, ifdb_dict):
-        if self.is_valid is False:
-            return
         if self.data is None:
             meas_dict = {"measurement": "AC LICOR", "fields": "CH4,CO2,DIAG"}
             self.data = read_ifdb(
@@ -91,7 +88,6 @@ class MeasurementCycle:
                 return
             self.data.set_index("datetime", inplace=True)
             self.data.index = pd.to_datetime(self.data.index)
-            self.data.tz_convert("Europe/Helsinki")
             start, end = get_datetime_index(
                 self.data, self, s_key="close", e_key="open"
             )
@@ -118,9 +114,9 @@ class MeasurementCycle:
         if data.empty:
             self.is_valid = False
             return
-        if self.is_valid is False:
-            return
         self.get_r()
+        if self.r < 0.6:
+            self.is_valid = False
         self.get_lagtime(data)
 
     def get_lag_df(self, start, end):

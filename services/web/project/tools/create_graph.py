@@ -8,12 +8,11 @@ logger = logging.getLogger("defaultLogger")
 
 
 def create_plot(measurement, gas, color_key="blue"):
+    logger.debug(f"Running for {gas}.")
     color_dict = {"blue": "rgb(14,168,213,0)", "green": "rgba(27,187,11,1)"}
 
-    if measurement.adjusted_close is not None:
-        close = measurement.adjusted_close
-    else:
-        close = measurement.close
+    close = measurement.close
+    open = measurement.open
 
     trace_data = go.Scatter(
         x=measurement.data.index,
@@ -35,18 +34,19 @@ def create_plot(measurement, gas, color_key="blue"):
         name="Close",
     )
     open_line = go.Scatter(
-        x=[measurement.open, measurement.open],
+        x=[open, open],
         y=[measurement.data[gas].min(), measurement.data[gas].max()],
         mode="lines",
         line=dict(color="green", dash="dash"),
         name="Open",
     )
+
     lag_line = (
         go.Scatter(
             x=[measurement.lagtime_index, measurement.lagtime_index],
             y=[measurement.data[gas].min(), measurement.data[gas].max()],
             mode="lines",
-            line=dict(color="red", dash="dash"),
+            line=dict(color="black", dash="dash"),
             name="lagtime",
         )
         if measurement.lagtime_index
@@ -71,12 +71,34 @@ def create_plot(measurement, gas, color_key="blue"):
         ),
         xaxis=dict(type="date"),
     )
+
     fig = go.Figure(
         data=[trace_data, open_line, close_line, lag_line]
         if lag_line
         else [trace_data, open_line, close_line],
         layout=layout,
     )
+    if measurement.is_valid is False or measurement.manual_valid is False:
+        fig.update_layout(
+            {
+                "plot_bgcolor": "rgba(255, 223, 223, 1)",
+            },
+            # template=draft_template,
+            annotations=[
+                dict(
+                    name="draft watermark",
+                    text="INVALID",
+                    textangle=0,
+                    opacity=0.4,
+                    font=dict(color="black", size=50),
+                    xref="paper",
+                    yref="paper",
+                    x=0.5,
+                    y=0.5,
+                    showarrow=False,
+                )
+            ],
+        )
 
     return fig
 
@@ -169,8 +191,8 @@ def mk_lag_graph(
     ]
 
     tz = "Europe/Helsinki"
-    start_ts = measurements[0].close - pd.Timedelta(minutes=1)
-    end_ts = measurements[-1].close + pd.Timedelta(minutes=1)
+    start_ts = measurements[0].close - pd.Timedelta(minutes=3)
+    end_ts = measurements[-1].close + pd.Timedelta(minutes=3)
     meas_dict = {"measurement": "flux_point", "fields": "id,lagtime"}
     arr_str = [str(id) for id in selected_chambers]
     tag = "chamber"
@@ -224,14 +246,8 @@ def mk_lag_graph(
     layout = go.Layout(
         template="plotly_white",
         hovermode="closest",
-        # width=1000,
-        # height=300,
         title={
             "text": "Lag time",
-            # "x": 0.33,  # Horizontal position of the title (0 - left, 0.5 - center, 1 - right)
-            # "y": 0.82,  # Vertical position of the title, with 1 being the top
-            # "xanchor": "center",  # Anchoring the title horizontally
-            # "yanchor": "top",  # Anchoring the title vertically
         },
         margin=dict(
             l=10,
@@ -253,7 +269,7 @@ def mk_lag_graph(
 
 def create_color_mapping(df, column_name):
     # Get unique values from the column
-    unique_values = df[column_name].unique()
+    unique_values = sorted(df[column_name].unique())
 
     # Generate a color map based on the number of unique values
     color_map = (
