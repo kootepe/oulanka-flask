@@ -99,6 +99,7 @@ def ac_plot(flask_app):
         Output("measurement-info", "children"),
         Output("stored-index", "data"),
         Output("stored-chamber", "data"),
+        State("lag-graph", "relayoutData"),
         Input("prev-button", "n_clicks"),
         Input("next-button", "n_clicks"),
         Input("find-max", "n_clicks"),
@@ -110,6 +111,7 @@ def ac_plot(flask_app):
         Input("skip-invalid", "value"),
     )
     def update_graph(
+        lag_state,
         prev_clicks,
         next_clicks,
         find_max,
@@ -147,10 +149,15 @@ def ac_plot(flask_app):
         # Safeguard to check for triggered input
         else:
             # Directly access ctx.triggered_id as a dictionary
-            triggered_id = ctx.triggered_id
+            triggered_id = ctx.triggered_id if ctx.triggered else None
             if triggered_id == "lag-graph":
                 pt = lag_graph.get("points")[0]
                 index = pt.get("customdata")[2]
+                if lag_graph:
+                    pt = lag_graph.get("points")[0]
+                    index = pt.get("customdata")[2]
+                # pt = lag_graph.get("points")[0]
+                # index = pt.get("customdata")[2]
             elif triggered_id == "chamber-select":
                 index = 0
             elif triggered_id == "prev-button":
@@ -198,10 +205,37 @@ def ac_plot(flask_app):
             fig_ch4 = create_plot(measurement, "CH4")
             fig_co2 = create_plot(measurement, "CO2", color_key="green")
 
-        lag_graph = mk_lag_graph(chamber_measurements, [measurement], ifdb_read_dict)
+        lag_graph = mk_lag_graph(
+            chamber_measurements, measurement, ifdb_push_dict, selected_chambers
+        )
+        print(lag_state)
+        if lag_graph_zoom(lag_state):
+            lag_graph.update_layout(lag_graph_zoom(lag_state))
+        logger.debug(f"lag_state:\n{lag_state}")
         measurement_info = f"Measurement {index + 1}/{len(chamber_measurements)} - Date: {measurement.start.date()}"
 
         return fig_ch4, fig_co2, lag_graph, measurement_info, index, chamber
+
+    def lag_graph_zoom(lag_state_dict):
+        lag_graph_layout = {"xaxis": {"range": None}, "yaxis": {"range": None}}
+        if lag_state_dict is None:
+            lag_graph_layout = None
+            pass
+        elif "autosize" in lag_state_dict.keys():
+            lag_graph_layout = None
+            pass
+        else:
+            if "xaxis.range[0]" in lag_state_dict:
+                lag_graph_layout["xaxis"]["range"] = [
+                    lag_state_dict["xaxis.range[0]"],
+                    lag_state_dict["xaxis.range[1]"],
+                ]
+            if "yaxis.range[0]" in lag_state_dict:
+                lag_graph_layout["yaxis"]["range"] = [
+                    lag_state_dict["yaxis.range[0]"],
+                    lag_state_dict["yaxis.range[1]"],
+                ]
+        return lag_graph_layout
 
     def decrement_index(index, measurements):
         return (index - 1) % len(measurements)
