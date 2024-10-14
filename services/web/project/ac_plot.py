@@ -15,60 +15,20 @@ from project.tools.create_graph import create_plot, mk_lag_graph, mk_lag_graph_o
 
 def ac_plot(flask_app):
     logger = init_logger()
-    with open("project/config.json", "r") as f:
-        config = json.load(f)
-        ifdb_read_dict = config["ifdb_read_dict"]
-        ifdb_push_dict = config["ifdb_push_dict"]
-
-    with open("project/cycle.json", "r") as f:
-        cycles = json.load(f)["CYCLE"]
-
-    def generate_month():
-        today = datetime.today()
-        return [(today - timedelta(days=i)).date() for i in range(60)][::-1]
+    config, ifdb_read_dict, ifdb_push_dict = load_config()
+    cycles = load_cycles()
 
     # Generate measurement cycle
-    all_measurements = []
     month = generate_month()
-    for day in month:
-        for cycle in cycles:
-            if pd.Timestamp(f"{day} {cycle.get('START')}") > datetime.now():
-                continue
-            s, c, o, e = (
-                pd.Timestamp(f"{day} {cycle.get(time)}")
-                for time in ["START", "CLOSE", "OPEN", "END"]
-            )
-            all_measurements.append(MeasurementCycle(cycle["CHAMBER"], s, c, o, e))
-
-    # Organize measurements by chamber ID
-    cycle_dict = {}
-    for mes in all_measurements:
-        cycle_dict.setdefault(mes.id, []).append(mes)
+    all_measurements = generate_measurements(month, cycles)
+    cycle_dict = organize_measurements_by_chamber(all_measurements)
 
     # Initialize Dash app
     app = Dash(__name__, server=flask_app, url_base_pathname="/dashing/")
     app.layout = create_layout(all_measurements[0])
 
-    @app.callback(
-        Output("chamber-buttons", "children"),
-        Input("output", "children"),
-    )
+    @app.callback(Output("chamber-buttons", "children"), Input("output", "children"))
     def generate_buttons(_):
-        """
-        Generate a button for each chamber.
-
-        Parameters
-        ----------
-        _ :
-
-
-        Returns
-        -------
-        buttons : list of dcc.Checklist or html.Button for multi-selection
-
-
-        """
-        # Use Checklist for multi-select functionality
         options = [
             {"label": chamber, "value": chamber} for chamber in cycle_dict.keys()
         ]
@@ -104,9 +64,84 @@ def ac_plot(flask_app):
         Input("mark-invalid", "n_clicks"),
         Input("mark-valid", "n_clicks"),
     )
-    def update_graph(
+    def update_graph(*args):
+        triggered_id, index, measurements, measurement, selected_chambers = (
+            handle_triggers(args, cycle_dict, logger)
+        )
+
+        if not measurements:
+            return no_data_response(selected_chambers)
+
+        slider_vals = update_slider(args[12], measurement, triggered_id)
+        load_measurement_data(measurement, ifdb_read_dict)
+
+        execute_actions(
+            triggered_id, measurement, measurements, ifdb_read_dict, ifdb_push_dict
+        )
+
+        fig_ch4, fig_co2 = create_ch4_co2_plots(measurement)
+        lag_graph = create_lag_graph(
+            measurements, measurement, ifdb_push_dict, selected_chambers, index
+        )
+        lag_graph = apply_lag_graph_zoom(lag_graph, args[0])
+
+        measurement_info = generate_measurement_info(measurement, index, measurements)
+
+        return (
+            fig_ch4,
+            fig_co2,
+            lag_graph,
+            measurement_info,
+            index,
+            selected_chambers,
+            slider_vals,
+        )
+
+    return app
+
+
+def load_config():
+    with open("project/config.json", "r") as f:
+        config = json.load(f)
+    return config, config["ifdb_read_dict"], config["ifdb_push_dict"]
+
+
+def load_cycles():
+    with open("project/cycle.json", "r") as f:
+        return json.load(f)["CYCLE"]
+
+
+def generate_month():
+    today = datetime.today()
+    return [(today - timedelta(days=i)).date() for i in range(60)][::-1]
+
+
+def generate_measurements(month, cycles):
+    all_measurements = []
+    for day in month:
+        for cycle in cycles:
+            if pd.Timestamp(f"{day} {cycle.get('START')}") > datetime.now():
+                continue
+            s, c, o, e = (
+                pd.Timestamp(f"{day} {cycle.get(time)}")
+                for time in ["START", "CLOSE", "OPEN", "END"]
+            )
+            all_measurements.append(MeasurementCycle(cycle["CHAMBER"], s, c, o, e))
+    return all_measurements
+
+
+def organize_measurements_by_chamber(all_measurements):
+    cycle_dict = {}
+    for mes in all_measurements:
+        cycle_dict.setdefault(mes.id, []).append(mes)
+    return cycle_dict
+
+
+def handle_triggers(args, cycle_dict, logger):
+    logger.debug("Running.")
+    (
         lag_state,
-        lag_graph_data,
+        _,
         prev_clicks,
         next_clicks,
         find_max,
@@ -121,179 +156,144 @@ def ac_plot(flask_app):
         co2_slider_values,
         mark_invalid,
         mark_valid,
-    ):
-        logger.debug("Running.")
-        if not selected_chambers:
-            selected_chambers = cycle_dict.keys()
-        measurements = sorted(
-            [
-                measurement
-                for chamber in selected_chambers
-                for measurement in cycle_dict.get(chamber, [])
-            ],
-            key=lambda x: x.open,
-        )
-        pt = None
-        if not measurements:
-            return (
-                Figure(),
-                Figure(),
-                Figure(),
-                "No data available",
-                0,
-                selected_chambers,
-            )
+    ) = args
+    triggered_id = ctx.triggered_id if ctx.triggered else None
+    selected_chambers = selected_chambers or list(cycle_dict.keys())
 
-        if not ctx.triggered:
-            # Handle the case when no button is triggered
-            triggered_id = None
-        # Safeguard to check for triggered input
-        else:
-            triggered_id = ctx.triggered_id if ctx.triggered else None
-            if triggered_id == "lag-graph":
-                pt = get_point.get("points")[0]
-                index = pt.get("customdata")[2]
-                y_value = pt["y"]
+    measurements = sorted(
+        [
+            measurement
+            for chamber in selected_chambers
+            for measurement in cycle_dict.get(chamber, [])
+        ],
+        key=lambda x: x.open,
+    )
 
-            elif triggered_id == "chamber-select":
-                index = 0
+    if triggered_id == "prev-button":
+        index = decrement_index(index, measurements)
+    elif triggered_id == "next-button":
+        index = increment_index(index, measurements)
+    elif triggered_id == "chamber-select":
+        index = 0
+    elif triggered_id == "lag-graph" and get_point:
+        index = get_point.get("points")[0].get("customdata")[2]
 
-            elif triggered_id == "prev-button":
-                index = decrement_index(index, measurements)
+    measurement = measurements[index] if measurements else None
+    return triggered_id, index, measurements, measurement, selected_chambers
 
-            elif triggered_id == "next-button":
-                index = increment_index(index, measurements)
 
-        # current measurement is the current index
-        measurement = measurements[index]
+def no_data_response(selected_chambers):
+    return Figure(), Figure(), Figure(), "No data available", 0, selected_chambers
 
-        slider_vals = update_slider(ch4_slider_values, measurement, triggered_id)
 
-        # Ensure measurement data is loaded
-        if measurement.data is None and measurement.is_valid is True:
-            measurement.get_data(ifdb_read_dict)
+def update_slider(ch4_slider_values, measurement, triggered_id):
+    close, open = ch4_slider_values
+    if triggered_id != "ch4-slide":
+        close, open = measurement.close_offset, measurement.open_offset
+    if triggered_id == "ch4-slide":
+        measurement.close_offset = close
+        measurement.open_offset = open
+    return [close, open]
 
-        if triggered_id == "find-max":
-            measurement.get_max()
-        if triggered_id == "del-lagtime":
-            measurement.del_lagtime()
-        if triggered_id == "push-all":
-            push_all_data(ifdb_read_dict, ifdb_push_dict, measurements)
-        if triggered_id == "push-lag":
-            push_one_lag(ifdb_push_dict, measurement)
-        if triggered_id == "mark-invalid":
-            measurement.manual_valid = False
-        if triggered_id == "mark-valid":
-            measurement.manual_valid = True
 
-        fig_ch4 = Figure()
-        fig_co2 = Figure()
-        if measurement.data is not None:
-            fig_ch4 = create_plot(measurement, "CH4")
-            fig_co2 = create_plot(measurement, "CO2", color_key="green")
+def load_measurement_data(measurement, ifdb_read_dict):
+    if measurement.data is None and measurement.is_valid:
+        measurement.get_data(ifdb_read_dict)
 
-        lag_graph = mk_lag_graph(
-            measurements, measurement, ifdb_push_dict, selected_chambers, index
-        )
-        # # lag_graph = mk_lag_graph_old(measurements, [measurement], ifdb_read_dict)
-        if lag_graph_zoom(lag_state):
-            lag_graph.update_layout(lag_graph_zoom(lag_state))
 
-        if triggered_id == "lag-graph" and get_point:
-            lag_graph.data[1].update(x=[pt["x"]], y=[y_value])
+def execute_actions(
+    triggered_id, measurement, measurements, ifdb_read_dict, ifdb_push_dict
+):
+    if triggered_id == "find-max":
+        measurement.get_max()
+    if triggered_id == "del-lagtime":
+        measurement.del_lagtime()
+    if triggered_id == "push-all":
+        push_all_data(ifdb_read_dict, ifdb_push_dict, measurements)
+    if triggered_id == "push-lag":
+        push_one_lag(ifdb_push_dict, measurement)
+    if triggered_id == "mark-invalid":
+        measurement.manual_valid = False
+    if triggered_id == "mark-valid":
+        measurement.manual_valid = True
 
-        logger.debug(f"lag_state:\n{lag_state}")
 
-        min_val = measurement.start.value
-        max_val = measurement.end.value
-        value = [measurement.open.value, measurement.close.value]
-        marks = {
-            int(measurement.data.index[i].value): measurement.data.index[i].strftime("")
-            for i in range(0, len(measurement.data.index), 1)
-        }
+def create_ch4_co2_plots(measurement):
+    fig_ch4, fig_co2 = Figure(), Figure()
+    if measurement.data is not None:
+        fig_ch4 = create_plot(measurement, "CH4")
+        fig_co2 = create_plot(measurement, "CO2", color_key="green")
+    return fig_ch4, fig_co2
 
-        if measurement.is_valid is True:
-            valid_str = "Valid: True"
-        else:
-            valid_str = "Valid: False"
-        measurement_info = f"Measurement {index + 1}/{len(measurements)} - Date: {measurement.start.date()} {valid_str}"
 
-        return (
-            fig_ch4,
-            fig_co2,
-            lag_graph,
-            measurement_info,
-            index,
-            chamber,
-            slider_vals,
-        )
+def create_lag_graph(
+    measurements, measurement, ifdb_push_dict, selected_chambers, index
+):
+    return mk_lag_graph(
+        measurements, measurement, ifdb_push_dict, selected_chambers, index
+    )
 
-    def update_slider(ch4_slider_values, measurement, triggered_id):
-        logger.debug("Running.")
-        close, open = ch4_slider_values
-        if triggered_id != "ch4-slide":
-            close, open = measurement.close_offset, measurement.open_offset
-        if triggered_id == "ch4-slide":
-            measurement.close_offset = close
-            measurement.open_offset = open
 
-        return [close, open]
+def apply_lag_graph_zoom(lag_graph, lag_state_dict):
+    lag_graph_layout = lag_graph_zoom(lag_state_dict)
+    if lag_graph_layout:
+        lag_graph.update_layout(lag_graph_layout)
+    return lag_graph
 
-    def lag_graph_zoom(lag_state_dict):
-        lag_graph_layout = {"xaxis": {"range": None}, "yaxis": {"range": None}}
-        if lag_state_dict is None:
-            lag_graph_layout = None
-            pass
-        elif "autosize" in lag_state_dict.keys():
-            lag_graph_layout = None
-            pass
-        else:
-            if "xaxis.range[0]" in lag_state_dict:
-                lag_graph_layout["xaxis"]["range"] = [
-                    lag_state_dict["xaxis.range[0]"],
-                    lag_state_dict["xaxis.range[1]"],
-                ]
-            if "yaxis.range[0]" in lag_state_dict:
-                lag_graph_layout["yaxis"]["range"] = [
-                    lag_state_dict["yaxis.range[0]"],
-                    lag_state_dict["yaxis.range[1]"],
-                ]
-        return lag_graph_layout
 
-    def push_all_data(read_dict, push_dict, measurements):
-        tag_cols = ["chamber"]
-        with init_client(ifdb_read_dict) as client:
-            [m.just_get_data(read_dict, client) for m in measurements]
-        data = [(m.close, m.lagtime_s, int(m.id), int(m.id)) for m in measurements]
-        df = pd.DataFrame(
-            data, columns=["close", "lagtime", "id", "chamber"]
-        ).set_index("close")
-        print(df["lagtime"].isnull().sum())
-
-        with init_client(push_dict) as client:
-            ifdb_push(df, client, push_dict, tag_cols)
-
-    def push_one_lag(ifdb_dict, measurement):
-        tag_cols = ["id"]
-        data = [
-            (
-                measurement.og_close,
-                measurement.lagtime_s,
-                int(measurement.id),
-                int(measurement.id),
-            )
+def lag_graph_zoom(lag_state_dict):
+    layout = {"xaxis": {"range": None}, "yaxis": {"range": None}}
+    if lag_state_dict and "xaxis.range[0]" in lag_state_dict:
+        layout["xaxis"]["range"] = [
+            lag_state_dict["xaxis.range[0]"],
+            lag_state_dict["xaxis.range[1]"],
         ]
-        df = pd.DataFrame(
-            data, columns=["close", "lagtime", "id", "chamber"]
-        ).set_index("close")
+    if lag_state_dict and "yaxis.range[0]" in lag_state_dict:
+        layout["yaxis"]["range"] = [
+            lag_state_dict["yaxis.range[0]"],
+            lag_state_dict["yaxis.range[1]"],
+        ]
+    return layout
 
-        with init_client(ifdb_dict) as client:
-            ifdb_push(df, client, ifdb_dict, tag_cols)
 
-    def decrement_index(index, measurements):
-        return (index - 1) % len(measurements)
+def push_all_data(read_dict, push_dict, measurements):
+    tag_cols = ["chamber"]
+    with init_client(read_dict) as client:
+        for m in measurements:
+            m.just_get_data(read_dict, client)
+    data = [(m.close, m.lagtime_s, int(m.id), int(m.id)) for m in measurements]
+    df = pd.DataFrame(data, columns=["close", "lagtime", "id", "chamber"]).set_index(
+        "close"
+    )
+    with init_client(push_dict) as client:
+        ifdb_push(df, client, push_dict, tag_cols)
 
-    def increment_index(index, measurements):
-        return (index + 1) % len(measurements)
 
-    return app
+def push_one_lag(ifdb_dict, measurement):
+    tag_cols = ["id"]
+    data = [
+        (
+            measurement.og_close,
+            measurement.lagtime_s,
+            int(measurement.id),
+            int(measurement.id),
+        )
+    ]
+    df = pd.DataFrame(data, columns=["close", "lagtime", "id", "chamber"]).set_index(
+        "close"
+    )
+    with init_client(ifdb_dict) as client:
+        ifdb_push(df, client, ifdb_dict, tag_cols)
+
+
+def decrement_index(index, measurements):
+    return (index - 1) % len(measurements)
+
+
+def increment_index(index, measurements):
+    return (index + 1) % len(measurements)
+
+
+def generate_measurement_info(measurement, index, measurements):
+    valid_str = "Valid: True" if measurement.is_valid else "Valid: False"
+    return f"Measurement {index + 1}/{len(measurements)} - Date: {measurement.start.date()} {valid_str}"

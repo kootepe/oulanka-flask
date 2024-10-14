@@ -86,6 +86,11 @@ class MeasurementCycle:
             if self.data.empty:
                 self.is_valid = False
                 return
+            if (
+                self.data["CH4"].is_monotonic_decreasing
+                or self.data["CH4"].is_monotonic_increasing
+            ):
+                self.is_valid = False
             self.data.set_index("datetime", inplace=True)
             self.data.index = pd.to_datetime(self.data.index)
             start, end = get_datetime_index(
