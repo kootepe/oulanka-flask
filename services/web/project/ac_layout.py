@@ -19,6 +19,7 @@ def create_layout(meas):
                     html.Button("Mark invalid", id="mark-invalid", n_clicks=0),
                     html.Button("Mark valid", id="mark-valid", n_clicks=0),
                     html.Button("Reset open and close", id="reset-cycle", n_clicks=0),
+                    html.Button("Jump to beginning", id="reset-index"),
                 ],
                 style={"margin-bottom": "10px"},
             ),

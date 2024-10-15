@@ -70,6 +70,7 @@ def ac_plot(flask_app):
         Input("mark-invalid", "n_clicks"),
         Input("mark-valid", "n_clicks"),
         Input("reset-cycle", "n_clicks"),
+        Input("reset-index", "n_clicks"),
     )
     def update_graph(*args):
         triggered_id, index, measurements, measurement, selected_chambers = (
@@ -169,6 +170,7 @@ def handle_triggers(args, cycle_dict, logger):
         mark_invalid,
         mark_valid,
         reset_cycle,
+        reset_index,
     ) = args
     triggered_id = ctx.triggered_id if ctx.triggered else None
     selected_chambers = selected_chambers or list(cycle_dict.keys())
@@ -186,11 +188,11 @@ def handle_triggers(args, cycle_dict, logger):
         index = decrement_index(index, measurements)
     elif triggered_id == "next-button":
         index = increment_index(index, measurements)
-    elif triggered_id == "chamber-select":
-        pass
     elif triggered_id == "lag-graph" and get_point:
         logger.debug(get_point)
         index = get_point.get("points")[0].get("customdata")[2]
+    elif triggered_id == "reset-index":
+        index = 0
 
     measurement = measurements[index] if measurements else None
     return triggered_id, index, measurements, measurement, selected_chambers
