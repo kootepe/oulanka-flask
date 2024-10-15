@@ -100,7 +100,7 @@ def mk_ifdb_ts(ts):
 
 
 def read_ifdb(ifdb_dict, meas_dict, start_ts=None, stop_ts=None, arr=None):
-    # logger.debug(f"Running query from {start_ts} to {stop_ts}")
+    logger.debug(f"Running query from {start_ts} to {stop_ts}")
 
     bucket = ifdb_dict.get("bucket")
     measurement = meas_dict.get("measurement")
@@ -119,6 +119,7 @@ def read_ifdb(ifdb_dict, meas_dict, start_ts=None, stop_ts=None, arr=None):
     with init_client(ifdb_dict) as client:
         q_api = client.query_api()
         query = mk_query(bucket, start, stop, measurement, fields, arr)
+        # logger.debug(query)
         try:
             df = q_api.query_data_frame(query)[["_time"] + fields]
         except Exception:
@@ -126,6 +127,9 @@ def read_ifdb(ifdb_dict, meas_dict, start_ts=None, stop_ts=None, arr=None):
             return None
 
         df = df.rename(columns={"_time": "datetime"})
+        # logger.debug(df)
+        if "DIAG" in df.columns:
+            logger.debug(f"diagsum: {df['DIAG'].sum()}")
         return df
 
 
@@ -183,6 +187,7 @@ def ifdb_push(df, client, ifdb_dict, tag_columns):
     print("data:")
     print(df.head())
     print(df.tail())
+    print(df.tz_convert("Europe/Helsinki"))
     try:
         write_api.write(
             bucket=bucket,

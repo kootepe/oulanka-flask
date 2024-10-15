@@ -12,7 +12,7 @@ def create_layout(meas):
             html.Div(id="measurement-info", style={"padding": "20px 0"}),
             html.Div(
                 [
-                    html.Button("Find lagtime", id="find-max", n_clicks=0),
+                    html.Button("Find lagtime", id="find-lag", n_clicks=0),
                     html.Button("Delete lagtime", id="del-lagtime", n_clicks=0),
                     html.Button("Push all", id="push-all", n_clicks=0),
                     html.Button("Push current lagtime", id="push-lag", n_clicks=0),

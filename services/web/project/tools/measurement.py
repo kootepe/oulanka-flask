@@ -23,6 +23,7 @@ class MeasurementCycle:
         self.lag_end = self.open + pd.Timedelta(seconds=120)
         self.data = data
         self.calc_data = None
+        self.got_lag = None
         self.lagtime_s = 0
         self.is_valid = True
         self.no_data_in_db = False
@@ -56,6 +57,7 @@ class MeasurementCycle:
         return self.og_open + pd.Timedelta(seconds=self.lagtime_s)
 
     def del_lagtime(self):
+        self.got_lag = False
         self.lagtime_s = 0
         self.open_offset = self.og_open_offset
 
@@ -96,13 +98,18 @@ class MeasurementCycle:
             if self.data.empty:
                 self.is_valid = False
                 return
+            self.data.index = pd.to_datetime(self.data["datetime"])
+
+            # print(self.data.resample("1m").mean())
+            # print(self.data.datetime)
+            # print(self.data)
             if (
-                self.data["CH4"].is_monotonic_decreasing
-                or self.data["CH4"].is_monotonic_increasing
+                self.data["CH4"].resample("20s").mean().is_monotonic_decreasing
+                or self.data["CH4"].resample("20s").mean().is_monotonic_increasing
             ):
                 self.is_valid = False
+
             self.data.set_index("datetime", inplace=True)
-            self.data.index = pd.to_datetime(self.data.index)
             start, end = get_datetime_index(
                 self.data, self, s_key="close", e_key="open"
             )
@@ -145,25 +152,31 @@ class MeasurementCycle:
         return data
 
     def get_lagtime(self, data):
+        if self.got_lag is True:
+            return
+        self.got_lag = True
         self.lagtime_s = 0
         self.open_offset = self.og_open_offset
         lagtime_idx = data["CH4"].idxmax()
         lagtime_idx = self.find_negative_lagtime(data, lagtime_idx)
         # if (lagtime_idx - open).total_seconds() == 119:
         if (lagtime_idx - self.open).total_seconds() >= 100:
-            logger.debug("Max lagtime")
+            logger.debug("Found max lag")
             lagtime_idx = self.find_negative_lagtime(data, lagtime_idx, 10)
 
         self.lagtime_s = (lagtime_idx - self.og_open).total_seconds()
         logger.debug(f"lag seconds: {self.lagtime_s}")
 
     def find_negative_lagtime(self, data, lagtime_idx, back=0):
+        logger.debug("Trying to find negative lagtime")
         i = 0
         open = self.og_open
         lag_end = self.lag_end
         back = pd.Timedelta(seconds=back)
         lag = (lagtime_idx - open).total_seconds()
-        while (lag == 0 and i < 12) or (lag > 130 and i < 10):
+        logger.debug(lag)
+        while (lag == 0 and i < 12) or (lag >= 110 and i < 10):
+            logger.debug(lag)
             i += 1
             ten_s = pd.Timedelta(seconds=10) + back
             start = open - ten_s

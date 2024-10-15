@@ -12,7 +12,7 @@ from project.ac_layout import create_layout
 from project.tools.logger import init_logger
 from project.tools.measurement import MeasurementCycle
 from project.tools.influxdb_funcs import init_client, ifdb_push
-from project.tools.create_graph import create_plot, mk_lag_graph, mk_lag_graph_old
+from project.tools.create_graph import mk_gas_plot, mk_lag_plot
 
 lag_graph_dir = False
 
@@ -57,7 +57,7 @@ def ac_plot(flask_app):
         State("lag-graph", "figure"),
         Input("prev-button", "n_clicks"),
         Input("next-button", "n_clicks"),
-        Input("find-max", "n_clicks"),
+        Input("find-lag", "n_clicks"),
         Input("del-lagtime", "n_clicks"),
         Input("push-all", "n_clicks"),
         Input("push-lag", "n_clicks"),
@@ -88,7 +88,12 @@ def ac_plot(flask_app):
 
         fig_ch4, fig_co2 = create_ch4_co2_plots(measurement)
         lag_graph = create_lag_graph(
-            measurements, measurement, ifdb_push_dict, selected_chambers, index
+            measurements,
+            measurement,
+            ifdb_push_dict,
+            selected_chambers,
+            index,
+            triggered_id,
         )
         lag_graph = apply_lag_graph_zoom(lag_graph, args[0])
 
@@ -182,8 +187,9 @@ def handle_triggers(args, cycle_dict, logger):
     elif triggered_id == "next-button":
         index = increment_index(index, measurements)
     elif triggered_id == "chamber-select":
-        index = 0
+        pass
     elif triggered_id == "lag-graph" and get_point:
+        logger.debug(get_point)
         index = get_point.get("points")[0].get("customdata")[2]
 
     measurement = measurements[index] if measurements else None
@@ -217,7 +223,7 @@ def load_measurement_data(measurement, ifdb_read_dict):
 def execute_actions(
     triggered_id, measurement, measurements, ifdb_read_dict, ifdb_push_dict
 ):
-    if triggered_id == "find-max":
+    if triggered_id == "find-lag":
         measurement.get_max()
     if triggered_id == "del-lagtime":
         measurement.del_lagtime()
@@ -236,30 +242,34 @@ def execute_actions(
 def create_ch4_co2_plots(measurement):
     fig_ch4, fig_co2 = Figure(), Figure()
     if measurement.data is not None:
-        fig_ch4 = create_plot(measurement, "CH4")
-        fig_co2 = create_plot(measurement, "CO2", color_key="green")
+        fig_ch4 = mk_gas_plot(measurement, "CH4")
+        fig_co2 = mk_gas_plot(measurement, "CO2", color_key="green")
     return fig_ch4, fig_co2
 
 
 def create_lag_graph(
-    measurements, measurementos, ifdb_push_dict, selected_chambers, index
+    measurements, measurementos, ifdb_push_dict, selected_chambers, index, triggered_id
 ):
     global lag_graph_dir
-    if lag_graph_dir is False:
-        lag_graph = mk_lag_graph(
+    print(triggered_id)
+    if lag_graph_dir is False or triggered_id == "chamber-select":
+        lag_graph = mk_lag_plot(
             measurements, measurementos, ifdb_push_dict, selected_chambers, index
         )
-    if lag_graph_dir is not False:
+    elif lag_graph_dir is not False:
         logger.debug("Recreating highlight")
-        new_trace = apply_lag_highlighter(measurementos)
+        highlighter = apply_lag_highlighter(measurementos)
         updated_fig_data = lag_graph_dir["data"]
-        return go.Figure([updated_fig_data[0]] + [new_trace], lag_graph_dir.layout)
+        # logger.debug(updated_fig_data[0])
+        traces = list(updated_fig_data[:-1])
+        highlighter = [highlighter]
+        return go.Figure(traces + highlighter, lag_graph_dir.layout)
     lag_graph_dir = lag_graph
     return lag_graph
 
 
 def apply_lag_highlighter(current_measurement):
-    logger.debug(current_measurement.close)
+    logger.debug("Creating highlighter")
     data2 = [
         (
             current_measurement.close,
@@ -279,9 +289,9 @@ def apply_lag_highlighter(current_measurement):
             color="rgba(255,0,0,0)",
             line=dict(color="rgba(255,0,0,1)", width=2),
         ),
-        name="highlight",
+        name="Current",
         hoverinfo="none",
-        showlegend=False,
+        showlegend=True,
     )
     return highlighter
 
@@ -322,7 +332,7 @@ def push_all_data(read_dict, push_dict, measurements):
 
 
 def push_one_lag(ifdb_dict, measurement):
-    tag_cols = ["id"]
+    tag_cols = ["chamber"]
     data = [
         (
             measurement.og_close,
@@ -334,6 +344,7 @@ def push_one_lag(ifdb_dict, measurement):
     df = pd.DataFrame(data, columns=["close", "lagtime", "id", "chamber"]).set_index(
         "close"
     )
+    logger.debug(data)
     with init_client(ifdb_dict) as client:
         ifdb_push(df, client, ifdb_dict, tag_cols)
 

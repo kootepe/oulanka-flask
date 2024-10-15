@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger("defaultLogger")
 
 
-def create_plot(measurement, gas, color_key="blue"):
+def mk_gas_plot(measurement, gas, color_key="blue"):
     logger.debug(f"Running for {gas}.")
     color_dict = {"blue": "rgb(14,168,213,0)", "green": "rgba(27,187,11,1)"}
 
@@ -42,8 +42,6 @@ def create_plot(measurement, gas, color_key="blue"):
         name="Open",
     )
 
-    logger.debug(measurement.lagtime_index)
-    logger.debug(measurement.lagtime_s)
     lag_line = (
         go.Scatter(
             x=[measurement.lagtime_index, measurement.lagtime_index],
@@ -106,83 +104,7 @@ def create_plot(measurement, gas, color_key="blue"):
     return fig
 
 
-def mk_lag_graph_old(measurements, current_measurement, ifdb_dict):
-    with init_client(ifdb_dict) as client:
-        [m.get_max(ifdb_dict, client) for m in measurements]
-    # Extract data from each measurement and store in a list of tuples
-    data = [(m.open, m.lagtime_s, m.id) for m in measurements]
-    data2 = [(m.open, m.lagtime_s, m.id) for m in current_measurement]
-    print(data2)
-
-    # Create a pandas DataFrame from the list
-    df = pd.DataFrame(data, columns=["open", "lagtime", "id"]).set_index("open")
-    df["idx"] = range(len(df))
-    df2 = pd.DataFrame(data2, columns=["open", "lagtime", "id"]).set_index("open")
-
-    # Generate a scatter plot with Plotly Graph Objects
-    color_map = create_color_mapping(df, "id")
-    colors = [color_map[val] for val in df["id"]]
-
-    trace_data = go.Scatter(
-        x=df.index,
-        y=df["lagtime"],
-        mode="markers",
-        name="Lag time",
-        marker=dict(
-            color=colors,
-            symbol="x-thin",
-            size=5,
-            line=dict(color=colors, width=2),
-        ),
-        customdata=df,
-    )
-    highlighter = go.Scatter(
-        x=df2.index,
-        y=df2["lagtime"],
-        mode="markers",
-        marker=dict(
-            symbol="circle",
-            size=15,
-            color="rgba(255,0,0,0)",
-            line=dict(color="rgba(255,0,0,1)", width=2),
-        ),
-        hoverinfo="none",
-        name="highlight",
-        showlegend=False,
-    )
-    layout = go.Layout(
-        template="plotly_white",
-        hovermode="closest",
-        # width=1000,
-        # height=300,
-        title={
-            "text": "Lag time",
-            # "x": 0.33,  # Horizontal position of the title (0 - left, 0.5 - center, 1 - right)
-            # "y": 0.82,  # Vertical position of the title, with 1 being the top
-            # "xanchor": "center",  # Anchoring the title horizontally
-            # "yanchor": "top",  # Anchoring the title vertically
-        },
-        margin=dict(
-            l=10,
-            r=10,
-            t=30,
-            b=10,
-        ),
-        xaxis=dict(type="date", showspikes=True),
-        yaxis=dict(showspikes=True),
-    )
-    fig = go.Figure(
-        data=[trace_data, highlighter],
-        layout=layout,
-    )
-    fig.add_hline(y=0, line_dash="dash", line_color="blue", line_width=1)
-
-    return fig
-
-
-def mk_lag_graph(
-    measurements, current_measurement, ifdb_dict, selected_chambers, index
-):
+def mk_lag_plot(measurements, current_measurement, ifdb_dict, selected_chambers, index):
     logger.debug("Creating lag graph.")
     current_measurement = measurements[index]
     data2 = [
@@ -201,39 +123,41 @@ def mk_lag_graph(
     tag = "chamber"
     q_arr = {"tag": tag, "arr": arr_str}
 
+    logger.debug("Querying.")
     df = read_ifdb(ifdb_dict, meas_dict, start_ts=start_ts, stop_ts=end_ts, arr=q_arr)
     if df is None:
-        return Figure()
+        return go.Figure()
     df.set_index("datetime", inplace=True)
     df.index = pd.to_datetime(df.index)
     df.sort_index(inplace=True)
 
-    # Create a pandas DataFrame from the list
-    # df = pd.DataFrame(data, columns=["open", "lagtime", "id"]).set_index("open")
     df["idx"] = range(len(df))
     df2 = pd.DataFrame(data2, columns=["close", "lagtime", "id"]).set_index("close")
-    # logger.debug(df)
-    # print(df.index)
-    # print(df2.index)
 
-    # Generate a scatter plot with Plotly Graph Objects
     color_map = create_color_mapping(df, "id")
-    colors = [color_map[val] for val in df["id"]]
 
-    trace_data = go.Scatter(
-        x=df.index,
-        y=df["lagtime"],
-        mode="markers",
-        name="Lag time",
-        marker=dict(
-            color=colors,
-            symbol="x-thin",
-            size=5,
-            line=dict(color=colors, width=2),
-        ),
-        customdata=df,
-        hoverinfo="all",
-    )
+    # Create a list of traces, one for each unique `id`
+    traces = []
+    for unique_id, color in color_map.items():
+        filtered_df = df[df["id"] == unique_id]
+        traces.append(
+            go.Scatter(
+                x=filtered_df.index,
+                y=filtered_df["lagtime"],
+                mode="markers",
+                name=f"{unique_id}",
+                marker=dict(
+                    color=color,
+                    symbol="x-thin",
+                    size=5,
+                    line=dict(color=color, width=1.5),
+                ),
+                customdata=filtered_df,
+                hoverinfo="all",
+            )
+        )
+
+    # Add the highlighter trace
     highlighter = go.Scatter(
         x=df2.index,
         y=df2["lagtime"],
@@ -244,42 +168,48 @@ def mk_lag_graph(
             color="rgba(255,0,0,0)",
             line=dict(color="rgba(255,0,0,1)", width=2),
         ),
-        name="highlight",
+        name="Current",
         hoverinfo="none",
-        showlegend=False,
+        showlegend=True,
     )
+
+    # Layout configuration
     layout = go.Layout(
-        template="plotly_white",
         hovermode="closest",
-        title={
-            "text": "Lag time",
-        },
-        margin=dict(
-            l=10,
-            r=10,
-            t=30,
-            b=10,
-        ),
+        title={"text": "Lag time"},
+        margin=dict(l=10, r=10, t=30, b=10),
         xaxis=dict(type="date", showspikes=True),
         yaxis=dict(showspikes=True),
+        legend=dict(
+            font=dict(size=10),
+            orientation="h",
+            tracegroupgap=3,
+            itemclick=False,
+            itemdoubleclick=False,
+        ),
     )
-    fig = go.Figure(
-        data=[trace_data, highlighter],
-        layout=layout,
-    )
+
+    # Add all traces (separate traces for each id) and the highlighter trace to the figure
+    fig = go.Figure(data=traces + [highlighter], layout=layout)
     fig.add_hline(y=0, line_dash="dash", line_color="blue", line_width=1)
 
     return fig
 
 
+fixed_color_mapping = {}
+color_list = px.colors.qualitative.Plotly + px.colors.qualitative.D3
+
+
 def create_color_mapping(df, column_name):
-    # Get unique values from the column
+    # Get unique values from the column, sorted to ensure consistent ordering
     unique_values = sorted(df[column_name].unique())
 
-    # Generate a color map based on the number of unique values
-    color_map = (
-        px.colors.qualitative.Plotly
-    )  # You can choose another color palette if you prefer
-    colors = {val: color_map[i % len(color_map)] for i, val in enumerate(unique_values)}
+    # Update the fixed color mapping if any new values appear
+    for i, val in enumerate(unique_values):
+        if val not in fixed_color_mapping:
+            fixed_color_mapping[val] = color_list[
+                len(fixed_color_mapping) % len(color_list)
+            ]
 
-    return colors
+    # Return the fixed color mapping for the current unique values
+    return {val: fixed_color_mapping[val] for val in unique_values}
