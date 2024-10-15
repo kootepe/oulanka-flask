@@ -18,6 +18,7 @@ def create_layout(meas):
                     html.Button("Push current lagtime", id="push-lag", n_clicks=0),
                     html.Button("Mark invalid", id="mark-invalid", n_clicks=0),
                     html.Button("Mark valid", id="mark-valid", n_clicks=0),
+                    html.Button("Reset open and close", id="reset-cycle", n_clicks=0),
                 ],
                 style={"margin-bottom": "10px"},
             ),

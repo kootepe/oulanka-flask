@@ -5,12 +5,18 @@ import json
 from datetime import datetime, timedelta
 from plotly.graph_objs import Figure
 from pprint import pprint
+import logging
+import plotly.graph_objs as go
 
 from project.ac_layout import create_layout
 from project.tools.logger import init_logger
 from project.tools.measurement import MeasurementCycle
 from project.tools.influxdb_funcs import init_client, ifdb_push
 from project.tools.create_graph import create_plot, mk_lag_graph, mk_lag_graph_old
+
+lag_graph_dir = False
+
+logger = logging.getLogger("defaultLogger")
 
 
 def ac_plot(flask_app):
@@ -63,6 +69,7 @@ def ac_plot(flask_app):
         Input("co2-slide", "value"),
         Input("mark-invalid", "n_clicks"),
         Input("mark-valid", "n_clicks"),
+        Input("reset-cycle", "n_clicks"),
     )
     def update_graph(*args):
         triggered_id, index, measurements, measurement, selected_chambers = (
@@ -113,7 +120,7 @@ def load_cycles():
 
 def generate_month():
     today = datetime.today()
-    return [(today - timedelta(days=i)).date() for i in range(60)][::-1]
+    return [(today - timedelta(days=i)).date() for i in range(70)][::-1]
 
 
 def generate_measurements(month, cycles):
@@ -156,6 +163,7 @@ def handle_triggers(args, cycle_dict, logger):
         co2_slider_values,
         mark_invalid,
         mark_valid,
+        reset_cycle,
     ) = args
     triggered_id = ctx.triggered_id if ctx.triggered else None
     selected_chambers = selected_chambers or list(cycle_dict.keys())
@@ -188,11 +196,16 @@ def no_data_response(selected_chambers):
 
 def update_slider(ch4_slider_values, measurement, triggered_id):
     close, open = ch4_slider_values
+    if triggered_id == "reset-cycle":
+        measurement.close_offset = measurement.og_close_offset
+        measurement.open_offset = measurement.og_open_offset
     if triggered_id != "ch4-slide":
         close, open = measurement.close_offset, measurement.open_offset
     if triggered_id == "ch4-slide":
         measurement.close_offset = close
         measurement.open_offset = open
+    if triggered_id == "del-lagtime":
+        close = measurement.og_close_offset
     return [close, open]
 
 
@@ -216,6 +229,8 @@ def execute_actions(
         measurement.manual_valid = False
     if triggered_id == "mark-valid":
         measurement.manual_valid = True
+    if triggered_id == "reset-cycle":
+        measurement.lagtimes_s = 0
 
 
 def create_ch4_co2_plots(measurement):
@@ -227,11 +242,48 @@ def create_ch4_co2_plots(measurement):
 
 
 def create_lag_graph(
-    measurements, measurement, ifdb_push_dict, selected_chambers, index
+    measurements, measurementos, ifdb_push_dict, selected_chambers, index
 ):
-    return mk_lag_graph(
-        measurements, measurement, ifdb_push_dict, selected_chambers, index
+    global lag_graph_dir
+    if lag_graph_dir is False:
+        lag_graph = mk_lag_graph(
+            measurements, measurementos, ifdb_push_dict, selected_chambers, index
+        )
+    if lag_graph_dir is not False:
+        logger.debug("Recreating highlight")
+        new_trace = apply_lag_highlighter(measurementos)
+        updated_fig_data = lag_graph_dir["data"]
+        return go.Figure([updated_fig_data[0]] + [new_trace], lag_graph_dir.layout)
+    lag_graph_dir = lag_graph
+    return lag_graph
+
+
+def apply_lag_highlighter(current_measurement):
+    logger.debug(current_measurement.close)
+    data2 = [
+        (
+            current_measurement.close,
+            current_measurement.lagtime_s,
+            current_measurement.id,
+        )
+    ]
+    df2 = pd.DataFrame(data2, columns=["close", "lagtime", "id"]).set_index("close")
+    logger.debug(df2)
+    highlighter = go.Scatter(
+        x=df2.index,
+        y=df2["lagtime"],
+        mode="markers",
+        marker=dict(
+            symbol="circle",
+            size=15,
+            color="rgba(255,0,0,0)",
+            line=dict(color="rgba(255,0,0,1)", width=2),
+        ),
+        name="highlight",
+        hoverinfo="none",
+        showlegend=False,
     )
+    return highlighter
 
 
 def apply_lag_graph_zoom(lag_graph, lag_state_dict):

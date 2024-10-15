@@ -1,4 +1,5 @@
 from project.tools.influxdb_funcs import init_client, just_read, read_ifdb
+from plotly.graph_objs import Figure
 import plotly.graph_objs as go
 import plotly.express as px
 import pandas as pd
@@ -41,6 +42,8 @@ def create_plot(measurement, gas, color_key="blue"):
         name="Open",
     )
 
+    logger.debug(measurement.lagtime_index)
+    logger.debug(measurement.lagtime_s)
     lag_line = (
         go.Scatter(
             x=[measurement.lagtime_index, measurement.lagtime_index],
@@ -115,7 +118,6 @@ def mk_lag_graph_old(measurements, current_measurement, ifdb_dict):
     df = pd.DataFrame(data, columns=["open", "lagtime", "id"]).set_index("open")
     df["idx"] = range(len(df))
     df2 = pd.DataFrame(data2, columns=["open", "lagtime", "id"]).set_index("open")
-    print(df)
 
     # Generate a scatter plot with Plotly Graph Objects
     color_map = create_color_mapping(df, "id")
@@ -145,6 +147,7 @@ def mk_lag_graph_old(measurements, current_measurement, ifdb_dict):
             line=dict(color="rgba(255,0,0,1)", width=2),
         ),
         hoverinfo="none",
+        name="highlight",
         showlegend=False,
     )
     layout = go.Layout(
@@ -199,6 +202,8 @@ def mk_lag_graph(
     q_arr = {"tag": tag, "arr": arr_str}
 
     df = read_ifdb(ifdb_dict, meas_dict, start_ts=start_ts, stop_ts=end_ts, arr=q_arr)
+    if df is None:
+        return Figure()
     df.set_index("datetime", inplace=True)
     df.index = pd.to_datetime(df.index)
     df.sort_index(inplace=True)
@@ -206,7 +211,6 @@ def mk_lag_graph(
     # Create a pandas DataFrame from the list
     # df = pd.DataFrame(data, columns=["open", "lagtime", "id"]).set_index("open")
     df["idx"] = range(len(df))
-    print(df)
     df2 = pd.DataFrame(data2, columns=["close", "lagtime", "id"]).set_index("close")
     # logger.debug(df)
     # print(df.index)
@@ -240,6 +244,7 @@ def mk_lag_graph(
             color="rgba(255,0,0,0)",
             line=dict(color="rgba(255,0,0,1)", width=2),
         ),
+        name="highlight",
         hoverinfo="none",
         showlegend=False,
     )
