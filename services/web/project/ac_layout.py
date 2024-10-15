@@ -8,7 +8,7 @@ def create_layout(meas):
         [
             html.Button("Previous", id="prev-button", n_clicks=0),
             html.Button("Next", id="next-button", n_clicks=0),
-            html.Div(id="chamber-buttons"),
+            html.Div([dcc.Checklist(id="chamber-select")], id="chamber-buttons"),
             html.Div(id="measurement-info", style={"padding": "20px 0"}),
             html.Div(
                 [
@@ -29,7 +29,7 @@ def create_layout(meas):
                         [
                             html.Div(
                                 [
-                                    dcc.Graph(id="ch4-graph", style=graph_style),
+                                    dcc.Graph(id="ch4-plot", style=graph_style),
                                     html.Div(
                                         dcc.RangeSlider(
                                             id="ch4-slide",

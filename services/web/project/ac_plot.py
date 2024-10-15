@@ -21,7 +21,7 @@ logger = logging.getLogger("defaultLogger")
 
 def ac_plot(flask_app):
     logger = init_logger()
-    config, ifdb_read_dict, ifdb_push_dict = load_config()
+    ifdb_read_dict, ifdb_push_dict = load_config()
     cycles = load_cycles()
 
     # Generate measurement cycle
@@ -46,7 +46,7 @@ def ac_plot(flask_app):
         )
 
     @app.callback(
-        Output("ch4-graph", "figure"),
+        Output("ch4-plot", "figure"),
         Output("co2-graph", "figure"),
         Output("lag-graph", "figure"),
         Output("measurement-info", "children"),
@@ -116,7 +116,7 @@ def ac_plot(flask_app):
 def load_config():
     with open("project/config.json", "r") as f:
         config = json.load(f)
-    return config, config["ifdb_read_dict"], config["ifdb_push_dict"]
+    return config["ifdb_read_dict"], config["ifdb_push_dict"]
 
 
 def load_cycles():

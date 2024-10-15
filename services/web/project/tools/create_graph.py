@@ -47,7 +47,7 @@ def mk_gas_plot(measurement, gas, color_key="blue"):
             x=[measurement.lagtime_index, measurement.lagtime_index],
             y=[measurement.data[gas].min(), measurement.data[gas].max()],
             mode="lines",
-            line=dict(color="black", dash="dash"),
+            line=dict(color="purple", dash="dashdot", width=1),
             name="lagtime",
         )
         if measurement.lagtime_index
