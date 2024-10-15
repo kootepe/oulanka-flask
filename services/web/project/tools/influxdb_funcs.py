@@ -100,11 +100,12 @@ def mk_ifdb_ts(ts):
 
 
 def read_ifdb(ifdb_dict, meas_dict, start_ts=None, stop_ts=None, arr=None):
-    logger.debug(f"Running query from {start_ts} to {stop_ts}")
-
     bucket = ifdb_dict.get("bucket")
     measurement = meas_dict.get("measurement")
     fields = list(meas_dict.get("fields").split(","))
+    logger.debug(f"Query from bucket:       {bucket}.")
+    logger.debug(f"Query from Measurement:  {measurement}.")
+    logger.debug(f"Query from:              {start_ts} to {stop_ts}.")
 
     if start_ts is not None:
         start = mk_ifdb_ts(start_ts)
