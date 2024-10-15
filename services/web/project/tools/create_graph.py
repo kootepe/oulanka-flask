@@ -187,7 +187,7 @@ def mk_lag_plot(measurements, current_measurement, ifdb_dict, selected_chambers,
         ),
         yaxis=dict(showspikes=True, spikethickness=1, spikedash="solid"),
         legend=dict(
-            font=dict(size=10),
+            font=dict(size=13),
             orientation="h",
             tracegroupgap=3,
             itemclick=False,
