@@ -1,3 +1,5 @@
 *.pyc
 *.csv
 *.feather
+.env.prod
+.env.prod.db

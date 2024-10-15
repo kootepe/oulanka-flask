@@ -1,26 +1,31 @@
 from flask import Flask, render_template, request
 from flask_httpauth import HTTPBasicAuth
-from project.chamber_validation import (
-    create_dash_app,
-)
-from project.chamber_validation2 import (
-    create_dash_app2,
-)
-from project.dashtest import test_plot
 from project.ac_plot import ac_plot
+from flask_sqlalchemy import SQLAlchemy
 
-from project.create_overview_app import (
-    create_overview_app,
-    create_overview_app_eeva,
-)
 from datetime import datetime
 from project.maintenance_log import maintenance_log
 
 app = Flask(__name__)
+app.config.from_object("project.config.Config")
+db = SQLAlchemy(app)
+
+
 auth = HTTPBasicAuth()
 app.secret_key = "supersecretkey"
 
 users = {"user": "password"}
+
+
+class User(db.Model):
+    __tablename__ = "users"
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(128), unique=True, nullable=False)
+    active = db.Column(db.Boolean(), default=True, nullable=False)
+
+    def __init__(self, email):
+        self.email = email
 
 
 @auth.verify_password
