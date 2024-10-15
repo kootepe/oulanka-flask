@@ -176,10 +176,16 @@ def mk_lag_plot(measurements, current_measurement, ifdb_dict, selected_chambers,
     # Layout configuration
     layout = go.Layout(
         hovermode="closest",
+        hoverdistance=20,
         title={"text": "Lag time"},
         margin=dict(l=10, r=10, t=30, b=10),
-        xaxis=dict(type="date", showspikes=True),
-        yaxis=dict(showspikes=True),
+        xaxis=dict(
+            type="date",
+            showspikes=True,
+            spikethickness=1,
+            spikedash="solid",
+        ),
+        yaxis=dict(showspikes=True, spikethickness=1, spikedash="solid"),
         legend=dict(
             font=dict(size=10),
             orientation="h",
