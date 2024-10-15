@@ -14,6 +14,7 @@ def create_layout(meas):
                 [
                     html.Button("Find lagtime", id="find-lag", n_clicks=0),
                     html.Button("Delete lagtime", id="del-lagtime", n_clicks=0),
+                    html.Button("Get max r", id="max-r", n_clicks=0),
                     html.Button("Push all", id="push-all", n_clicks=0),
                     html.Button("Push current lagtime", id="push-lag", n_clicks=0),
                     html.Button("Mark invalid", id="mark-invalid", n_clicks=0),

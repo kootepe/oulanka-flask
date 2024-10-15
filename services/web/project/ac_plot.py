@@ -71,6 +71,7 @@ def ac_plot(flask_app):
         Input("mark-valid", "n_clicks"),
         Input("reset-cycle", "n_clicks"),
         Input("reset-index", "n_clicks"),
+        Input("max-r", "n_clicks"),
     )
     def update_graph(*args):
         triggered_id, index, measurements, measurement, selected_chambers = (
@@ -171,6 +172,7 @@ def handle_triggers(args, cycle_dict, logger):
         mark_valid,
         reset_cycle,
         reset_index,
+        max_r,
     ) = args
     triggered_id = ctx.triggered_id if ctx.triggered else None
     selected_chambers = selected_chambers or list(cycle_dict.keys())
@@ -192,6 +194,8 @@ def handle_triggers(args, cycle_dict, logger):
         logger.debug(get_point)
         index = get_point.get("points")[0].get("customdata")[2]
     elif triggered_id == "reset-index":
+        index = 0
+    elif triggered_id == "chamber-select":
         index = 0
 
     measurement = measurements[index] if measurements else None
@@ -229,6 +233,8 @@ def execute_actions(
         measurement.get_max()
     if triggered_id == "del-lagtime":
         measurement.del_lagtime()
+    if triggered_id == "max-r":
+        measurement.get_max_r()
     if triggered_id == "push-all":
         push_all_data(ifdb_read_dict, ifdb_push_dict, measurements)
     if triggered_id == "push-lag":

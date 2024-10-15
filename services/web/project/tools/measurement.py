@@ -30,6 +30,10 @@ class MeasurementCycle:
         self.has_errors = False
         self.adjusted_time = False
         self.manual_valid = None
+        self.ch4_r_offset = 0
+        self.co2_r_offset = 0
+        self.ch4_r = 0
+        self.co2_r = 0
 
     @property
     def close(self):
@@ -46,7 +50,7 @@ class MeasurementCycle:
     def close_t(self):
         return (
             self.start
-            + pd.Timedelta(seconds=self.og_close_offset)
+            + pd.Timedelta(seconds=self.close_offset)
             + pd.Timedelta(seconds=self.lagtime_s)
         )
 
@@ -136,8 +140,10 @@ class MeasurementCycle:
         if data.empty:
             self.is_valid = False
             return
-        self.get_r()
-        if self.r < 0.6:
+        # self.get_r()
+        for gas in ["CH4", "CO2"]:
+            self.get_max_r(gas)
+        if self.ch4_r < 0.6:
             self.is_valid = False
         self.get_lagtime(data)
 
@@ -196,3 +202,43 @@ class MeasurementCycle:
         self.r = calculate_pearsons_r(
             self.calc_data.index.view(int), self.calc_data["CH4"]
         )
+
+    def get_max_r(self, gas):
+        max_r = None
+        max_r_idx = None
+        df = self.calc_data.copy()
+        interval = "3min"
+        interval_minutes = 3
+        increment_seconds = 20
+        interval_delta = pd.Timedelta(minutes=interval_minutes)
+        increment_delta = pd.Timedelta(seconds=increment_seconds)
+        start_time = df.index[0]
+        end_time = df.index[-1]
+        while start_time <= end_time:
+            # Define the interval end time
+            interval_end = start_time + interval_delta
+
+            # Select data within the interval
+            data = df[(df.index >= start_time) & (df.index < interval_end)]
+            if not data.empty:
+                # Apply the function to the data in the current interval
+                r = abs(calculate_pearsons_r(data.index.view(int), data[gas]))
+                logger.debug(r)
+            if len(data) > 180 * 0.9:
+                if max_r is None or r > max_r:
+                    max_r = r
+                    max_r_idx = start_time
+            start_time += increment_delta
+        logger.debug(max_r)
+        logger.debug(max_r_idx)
+        if max_r_idx is None:
+            max_r_idx = self.start
+            max_r = 0
+        max_r_offset = (max_r_idx - self.start).total_seconds()
+        if gas == "CH4":
+            self.ch4_r = max_r
+            self.ch4_r_offset = max_r_offset
+
+        if gas == "CO2":
+            self.co2_r = max_r
+            self.co2_r_offset = max_r_offset

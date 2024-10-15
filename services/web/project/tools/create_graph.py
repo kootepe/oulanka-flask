@@ -14,6 +14,16 @@ def mk_gas_plot(measurement, gas, color_key="blue"):
 
     close = measurement.close
     open = measurement.open
+    if gas == "CH4":
+        r_s = measurement.start + pd.Timedelta(seconds=measurement.ch4_r_offset)
+        r_e = r_s + pd.Timedelta(seconds=180)
+        r_pos = r_e - pd.Timedelta(seconds=90)
+        r = measurement.ch4_r
+    if gas == "CO2":
+        r_s = measurement.start + pd.Timedelta(seconds=measurement.co2_r_offset)
+        r_e = r_s + pd.Timedelta(seconds=180)
+        r_pos = r_e - pd.Timedelta(seconds=90)
+        r = measurement.co2_r
 
     trace_data = go.Scatter(
         x=measurement.data.index,
@@ -100,6 +110,21 @@ def mk_gas_plot(measurement, gas, color_key="blue"):
                 )
             ],
         )
+
+    if measurement.is_valid is True or measurement.manual_valid is True:
+        fig.add_shape(
+            type="rect",
+            x0=r_s,
+            x1=r_e,
+            y0=min(measurement.data[gas]),
+            y1=max(measurement.data[gas]),
+            fillcolor="grey",
+            opacity=0.3,
+            line_width=0,
+        )
+        # fig.add_annotation(
+        #     text=round(r, 4), x=r_e, y=min(measurement.data[gas]), showarrow=False
+        # )
 
     return fig
 
