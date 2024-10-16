@@ -48,7 +48,7 @@ def index():
 
 @server.route("/ac_dashing")
 def render_ac():
-    return redirect("ac_dash")
+    return redirect("/ac_dash")
 
 
 # @server.route("/asd")

@@ -30,7 +30,7 @@ def ac_plot(flask_app):
     cycle_dict = organize_measurements_by_chamber(all_measurements)
 
     # Initialize Dash app
-    app = Dash(__name__, server=flask_app, url_base_pathname="/dashing/")
+    app = Dash(__name__, server=flask_app, url_base_pathname="/ac_dash/")
     app.layout = create_layout(all_measurements[0])
 
     @app.callback(Output("chamber-buttons", "children"), Input("output", "children"))
