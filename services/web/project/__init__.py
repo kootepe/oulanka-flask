@@ -39,8 +39,8 @@ def index():
     return render_template("index.html")
 
 
-@app.route("/dashing")
-def render_ac(app):
+@app.server("/dashing")
+def render_ac():
     return ac_plot(app)
 
 
