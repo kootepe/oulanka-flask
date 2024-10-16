@@ -40,7 +40,7 @@ def index():
 
 
 @app.route("/dashing")
-def render_ac():
+def render_ac(app):
     return ac_plot(app)
 
 
