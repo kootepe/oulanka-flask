@@ -36,7 +36,7 @@ def verify_password(username, password):
 
 with app.app_context():
     g.cur_app = app
-    app1 = ac_plot(app)
+    app = ac_plot("/dashing")
 
 # @app.route("/")
 # def index():
