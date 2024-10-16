@@ -16,6 +16,8 @@ app.secret_key = "supersecretkey"
 
 users = {"user": "password"}
 
+ac_plot(app, "dashing")
+
 
 class User(db.Model):
     __tablename__ = "users"
@@ -239,8 +241,6 @@ def submit_times():
 # create_dash_app(app)
 # create_dash_app2(app)
 # test_plot(app)
-ac_plot(app)
-maintenance_log(app)
 # create_overview_app(app)
 # create_overview_app_eeva(app)
 
