@@ -4,6 +4,7 @@ from flask_httpauth import HTTPBasicAuth
 from project.ac_plot import ac_plot
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from werkzeug.serving import run_simple
 from dash import Dash
 import dash_html_components as html
 
@@ -65,6 +66,7 @@ def render_reports():
 app = DispatcherMiddleware(
     server, {"/dash1": dash_app1.server, "/dash2": dash_app2.server}
 )
+run_simple("0.0.0.0", 8080, app, use_reloader=True, use_debugger=True)
 
 # app = DispatcherMiddleware(server, {"/ac_dash": ac_app.server})
 
