@@ -46,7 +46,7 @@ def index():
     return render_template("index.html")
 
 
-@server.route("ac_dashing")
+@server.route("/ac_dashing")
 def render_ac():
     return redirect("ac_dash")
 
