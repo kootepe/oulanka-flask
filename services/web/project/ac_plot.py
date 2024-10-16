@@ -19,8 +19,9 @@ lag_graph_dir = False
 logger = logging.getLogger("defaultLogger")
 
 
-def ac_plot(flask_app):
-    app = Dash(__name__, server=flask_app, url_base_pathname="/dashing")
+def ac_plot(flask_app, url):
+    app = Dash(__name__, server=flask_app, requests_pathname_prefix="/dashing")
+    Dash()
     logger = init_logger()
     ifdb_read_dict, ifdb_push_dict = load_config()
     cycles = load_cycles()
