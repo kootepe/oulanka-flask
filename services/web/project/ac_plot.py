@@ -20,8 +20,7 @@ logger = logging.getLogger("defaultLogger")
 
 
 def ac_plot(flask_app, url):
-    app = Dash(__name__, server=flask_app, requests_pathname_prefix="/dashing")
-    Dash()
+    app = Dash(__name__, server=flask_app)
     logger = init_logger()
     ifdb_read_dict, ifdb_push_dict = load_config()
     cycles = load_cycles()
