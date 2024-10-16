@@ -39,7 +39,7 @@ def index():
     return render_template("index.html")
 
 
-@app.route("/dashing")
+@app.route("/dasher")
 def render_ac():
     ac_plot(app, "/dashing/")
 
