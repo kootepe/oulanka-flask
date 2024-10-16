@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 from flask_httpauth import HTTPBasicAuth
 from project.ac_plot import ac_plot
 from flask_sqlalchemy import SQLAlchemy
@@ -46,14 +46,19 @@ def index():
     return render_template("index.html")
 
 
-@server.route("/asd")
-def acer():
-    return ac_plot(server).index()
+@server.route("ac_dashing")
+def render_ac():
+    return redirect("ac_dash")
 
 
-@server.route("/testing")
-def ac_plots():
-    return ac_plot.server()
+# @server.route("/asd")
+# def acer():
+#     return ac_plot(server).index()
+
+
+# @server.route("/testing")
+# def ac_plots():
+# return ac_plot.server()
 
 
 # @app.route("/snowdepth")
