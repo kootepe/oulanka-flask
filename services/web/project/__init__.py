@@ -2,17 +2,18 @@ from flask import Flask, render_template, request
 from flask_httpauth import HTTPBasicAuth
 from project.ac_plot import ac_plot
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
 from datetime import datetime
 from project.maintenance_log import maintenance_log
 
-app = Flask(__name__)
-app.config.from_object("project.config.Config")
-db = SQLAlchemy(app)
+server = Flask(__name__)
+server.config.from_object("project.config.Config")
+db = SQLAlchemy(server)
 
 
 auth = HTTPBasicAuth()
-app.secret_key = "supersecretkey"
+server.secret_key = "supersecretkey"
 
 users = {"user": "password"}
 
@@ -34,9 +35,25 @@ def verify_password(username, password):
         return username
 
 
-@app.route("/")
+ac_app = ac_plot(server)
+
+
+app = DispatcherMiddleware(server, {"/ac_dash": ac_app.server})
+
+
+@server.route("/")
 def index():
     return render_template("index.html")
+
+
+@server.route("/asd")
+def acer():
+    return ac_plot(server).index()
+
+
+@server.route("/testing")
+def ac_plots():
+    return ac_plot.server()
 
 
 # @app.route("/snowdepth")
@@ -50,55 +67,55 @@ def index():
 #     return render_template("maintenance_log.html")
 
 
-@app.route("/snow_density_fen")
+@server.route("/snow_density_fen")
 @auth.login_required
 def snow_density_fen():
     return render_template("snow_density_fen.html")
 
 
-@app.route("/snow_density_forest")
+@server.route("/snow_density_forest")
 @auth.login_required
 def snow_density_forest():
     return render_template("snow_density_forest.html")
 
 
-@app.route("/snowdepth_forest")
+@server.route("/snowdepth_forest")
 @auth.login_required
 def snowdepth_forest():
     return render_template("snowdepth_forest.html")
 
 
-@app.route("/autochamber_state")
+@server.route("/autochamber_state")
 @auth.login_required
 def autochamber_state():
     return render_template("autochamber_state.html")
 
 
-@app.route("/snowdepth_fen")
+@server.route("/snowdepth_fen")
 @auth.login_required
 def snowdepth_fen():
     return render_template("snowdepth_fen.html")
 
 
-@app.route("/manual_measurement_forest")
+@server.route("/manual_measurement_forest")
 @auth.login_required
 def manual_measurement_forest():
     return render_template("manual_measurement_forest.html")
 
 
-@app.route("/manual_measurement_fen")
+@server.route("/manual_measurement_fen")
 @auth.login_required
 def manual_measurement_fen():
     return render_template("manual_measurement_fen.html")
 
 
-@app.route("/licor_inspect")
+@server.route("/licor_inspect")
 @auth.login_required
 def licor_inspect():
     return render_template("licor_inspect.html")
 
 
-@app.route("/water_table_level")
+@server.route("/water_table_level")
 @auth.login_required
 def water_table_level():
     return render_template("water_table_level.html")
@@ -109,7 +126,7 @@ def water_table_level():
 #     return render_template("filter.html", instruments=instruments)
 
 
-@app.route("/licor_dl", methods=["POST"])
+@server.route("/licor_dl", methods=["POST"])
 def run_licor_dl():
     from licor_dl import main
 
@@ -126,7 +143,7 @@ def run_licor_dl():
     # return redirect(url_for("licor_inspect"))
 
 
-@app.route("/submit_water", methods=["POST"])
+@server.route("/submit_water", methods=["POST"])
 @auth.login_required
 def submit_water():
     inputs = []
@@ -150,7 +167,7 @@ def submit_water():
     return "<br>".join(inputs)
 
 
-@app.route("/submit_ac", methods=["POST"])
+@server.route("/submit_ac", methods=["POST"])
 @auth.login_required
 def submit_ac():
     inputs = []
@@ -172,7 +189,7 @@ def submit_ac():
     return "<br>".join(inputs)
 
 
-@app.route("/submit_snow", methods=["POST"])
+@server.route("/submit_snow", methods=["POST"])
 def submit_snow():
     inputs = []
 
@@ -204,7 +221,7 @@ def submit_snow():
     return "<br>".join(inputs)
 
 
-@app.route("/submit_times", methods=["POST"])
+@server.route("/submit_times", methods=["POST"])
 def submit_times():
     inputs = []
 
@@ -239,10 +256,10 @@ def submit_times():
 # create_dash_app(app)
 # create_dash_app2(app)
 # test_plot(app)
-ac_plot(app)
-maintenance_log(app)
+# ac_plot(app)
+# maintenance_log(app)
 # create_overview_app(app)
 # create_overview_app_eeva(app)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    server.run(host="0.0.0.0", debug=True)
