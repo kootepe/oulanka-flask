@@ -2,6 +2,7 @@ from flask import Flask, render_template, request
 from flask_httpauth import HTTPBasicAuth
 from project.ac_plot import ac_plot
 from flask_sqlalchemy import SQLAlchemy
+import temp_users
 
 from datetime import datetime
 from project.maintenance_log import maintenance_log
@@ -11,12 +12,13 @@ app.config.from_object("project.config.Config")
 db = SQLAlchemy(app)
 
 
+users = temp_users.users
 auth = HTTPBasicAuth()
 app.secret_key = "supersecretkey"
 
-users = {"user": "password"}
 
-ac_plot(app, "dashing")
+ac_plot(app, "/dashing/")
+maintenance_log(app, "/log/")
 
 
 class User(db.Model):
@@ -237,12 +239,6 @@ def submit_times():
             f.write("\n".join(inputs))
     return "<br>".join(inputs)
 
-
-# create_dash_app(app)
-# create_dash_app2(app)
-# test_plot(app)
-# create_overview_app(app)
-# create_overview_app_eeva(app)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)

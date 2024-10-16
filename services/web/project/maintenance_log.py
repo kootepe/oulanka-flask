@@ -6,14 +6,18 @@ from project.log_layout import create_layout
 from project.push_point import ifdb_push
 from datetime import datetime as dt
 from dash import Dash, dcc, ctx, html, Input, Output, State
+import temp_users
 
 selected = []
 is_range = []
 text_date_end = None
 text_time_end = None
+users = temp_users.users
 
 
-def maintenance_log(flask_app):
+def maintenance_log(flask_app, url):
+    app = Dash(__name__, server=flask_app, url_base_pathname=url)
+    # app = Dash(__name__, server=flask_app, routes_pathname_prefix=url)
     tz = pytz.timezone("Europe/Helsinki")
 
     # Load projects data from JSON file
@@ -24,8 +28,6 @@ def maintenance_log(flask_app):
     with open("project/maintenance_log_config.json", "r") as f:
         config = json.load(f)
         ifdb_dict = config["CONFIG"]["INFLUXDB"]
-
-    app = Dash(__name__, server=flask_app, url_base_pathname="/maintenance_log/")
 
     # NOTE: import layout from file
     app.layout = create_layout()

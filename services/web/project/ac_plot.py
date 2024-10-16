@@ -7,6 +7,7 @@ from plotly.graph_objs import Figure
 from pprint import pprint
 import logging
 import plotly.graph_objs as go
+import temp_users
 
 from project.ac_layout import create_layout
 from project.tools.logger import init_logger
@@ -17,10 +18,12 @@ from project.tools.create_graph import mk_gas_plot, mk_lag_plot
 lag_graph_dir = False
 
 logger = logging.getLogger("defaultLogger")
+users = temp_users.users
 
 
 def ac_plot(flask_app, url):
     app = Dash(__name__, server=flask_app, url_base_pathname=url)
+    # app = Dash(__name__, server=flask_app, routes_pathname_prefix=url)
     logger = init_logger()
     ifdb_read_dict, ifdb_push_dict = load_config()
     cycles = load_cycles()
