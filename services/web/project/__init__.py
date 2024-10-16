@@ -34,6 +34,9 @@ def verify_password(username, password):
         return username
 
 
+ac_plot(app)
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -239,8 +242,7 @@ def submit_times():
 # create_dash_app(app)
 # create_dash_app2(app)
 # test_plot(app)
-ac_plot(app)
-maintenance_log(app)
+# maintenance_log(app)
 # create_overview_app(app)
 # create_overview_app_eeva(app)
 

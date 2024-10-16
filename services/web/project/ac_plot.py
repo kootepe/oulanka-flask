@@ -20,6 +20,7 @@ logger = logging.getLogger("defaultLogger")
 
 
 def ac_plot(flask_app):
+    app = Dash(__name__, server=flask_app, url_base_pathname="/dashing/")
     logger = init_logger()
     ifdb_read_dict, ifdb_push_dict = load_config()
     cycles = load_cycles()
@@ -28,10 +29,9 @@ def ac_plot(flask_app):
     month = generate_month()
     all_measurements = generate_measurements(month, cycles)
     cycle_dict = organize_measurements_by_chamber(all_measurements)
+    app.layout = create_layout(all_measurements[0])
 
     # Initialize Dash app
-    app = Dash(__name__, server=flask_app, routes_pathname_prefix="/dashing/")
-    app.layout = create_layout(all_measurements[0])
 
     @app.callback(Output("chamber-buttons", "children"), Input("output", "children"))
     def generate_buttons(_):
