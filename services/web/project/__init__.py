@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, g
+from flask import Flask, render_template, request
 from flask_httpauth import HTTPBasicAuth
 from project.ac_plot import ac_plot
 from flask_sqlalchemy import SQLAlchemy
@@ -34,18 +34,9 @@ def verify_password(username, password):
         return username
 
 
-# with app.app_context():
-#     g.cur_app = app
-#     app = ac_plot("/dashing/")
-
-# @app.route("/")
-# def index():
-#     return render_template("index.html")
-
-
-# @app.route("/testing")
-# def ac_plots():
-#     return ac_plot.server()
+@app.route("/")
+def index():
+    return render_template("index.html")
 
 
 # @app.route("/snowdepth")
@@ -248,8 +239,8 @@ def submit_times():
 # create_dash_app(app)
 # create_dash_app2(app)
 # test_plot(app)
-# ac_plot(app)
-# maintenance_log(app)
+ac_plot(app)
+maintenance_log(app)
 # create_overview_app(app)
 # create_overview_app_eeva(app)
 
