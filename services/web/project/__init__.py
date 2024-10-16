@@ -34,12 +34,14 @@ def verify_password(username, password):
         return username
 
 
-ac_plot(app)
-
-
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+@app.route("/dashing")
+def render_ac():
+    return ac_plot(app)
 
 
 # @app.route("/snowdepth")
