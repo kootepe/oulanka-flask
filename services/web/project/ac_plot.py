@@ -1,6 +1,5 @@
 import dash
 from dash import Dash, dcc, html, Input, Output, State, ctx
-from flask import g
 import pandas as pd
 import json
 from datetime import datetime, timedelta
@@ -20,7 +19,7 @@ lag_graph_dir = False
 logger = logging.getLogger("defaultLogger")
 
 
-def ac_plot(base_name):
+def ac_plot(flask_app):
     logger = init_logger()
     ifdb_read_dict, ifdb_push_dict = load_config()
     cycles = load_cycles()
@@ -31,7 +30,7 @@ def ac_plot(base_name):
     cycle_dict = organize_measurements_by_chamber(all_measurements)
 
     # Initialize Dash app
-    app = Dash(server=g.cur_app, url_base_pathname=base_name)
+    app = Dash(__name__, server=flask_app, routes_pathname_prefix="/dashing/")
     app.layout = create_layout(all_measurements[0])
 
     @app.callback(Output("chamber-buttons", "children"), Input("output", "children"))
@@ -112,7 +111,7 @@ def ac_plot(base_name):
             slider_vals,
         )
 
-    return app.server
+    return app
 
 
 def load_config():
