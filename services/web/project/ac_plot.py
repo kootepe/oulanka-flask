@@ -1,5 +1,6 @@
 import dash
 from dash import Dash, dcc, html, Input, Output, State, ctx
+import dash_auth
 import pandas as pd
 import json
 from datetime import datetime, timedelta
@@ -24,6 +25,7 @@ users = temp_users.users
 def ac_plot(flask_app, url):
     app = Dash(__name__, server=flask_app, url_base_pathname=url)
     # app = Dash(__name__, server=flask_app, routes_pathname_prefix=url)
+    auth = dash_auth.BasicAuth(app, users)
     logger = init_logger()
     ifdb_read_dict, ifdb_push_dict = load_config()
     cycles = load_cycles()

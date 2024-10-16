@@ -6,6 +6,7 @@ from project.log_layout import create_layout
 from project.push_point import ifdb_push
 from datetime import datetime as dt
 from dash import Dash, dcc, ctx, html, Input, Output, State
+import dash_auth
 import temp_users
 
 selected = []
@@ -17,6 +18,7 @@ users = temp_users.users
 
 def maintenance_log(flask_app, url):
     app = Dash(__name__, server=flask_app, url_base_pathname=url)
+    auth = dash_auth.BasicAuth(app, users)
     # app = Dash(__name__, server=flask_app, routes_pathname_prefix=url)
     tz = pytz.timezone("Europe/Helsinki")
 
