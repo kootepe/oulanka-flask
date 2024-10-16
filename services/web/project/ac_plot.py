@@ -1,5 +1,6 @@
 import dash
 from dash import Dash, dcc, html, Input, Output, State, ctx
+import dash_auth
 import pandas as pd
 import json
 from datetime import datetime, timedelta
@@ -13,15 +14,20 @@ from project.tools.logger import init_logger
 from project.tools.measurement import MeasurementCycle
 from project.tools.influxdb_funcs import init_client, ifdb_push
 from project.tools.create_graph import mk_gas_plot, mk_lag_plot
+import temp_users
 
 lag_graph_dir = False
 
 logger = logging.getLogger("defaultLogger")
 
 
+users = temp_users.users
+
+
 def ac_plot(flask_app, url):
-    # app = Dash(__name__, server=flask_app, url_base_pathname=url)
-    app = Dash(__name__, server=flask_app, requests_pathname_prefix="/dashing")
+    app = Dash(__name__, server=flask_app, url_base_pathname=url)
+    auth = dash_auth.BasicAuth(app, users)
+    # app = Dash(__name__, server=flask_app, requests_pathname_prefix=url)
     logger = init_logger()
     ifdb_read_dict, ifdb_push_dict = load_config()
     cycles = load_cycles()

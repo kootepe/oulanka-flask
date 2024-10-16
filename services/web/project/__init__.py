@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 from flask_httpauth import HTTPBasicAuth
 from project.ac_plot import ac_plot
 from flask_sqlalchemy import SQLAlchemy
+import temp_users
 
 from datetime import datetime
 from project.maintenance_log import maintenance_log
@@ -14,7 +15,8 @@ db = SQLAlchemy(app)
 auth = HTTPBasicAuth()
 app.secret_key = "supersecretkey"
 
-users = {"user": "password"}
+
+users = temp_users.users
 
 
 class User(db.Model):
@@ -26,6 +28,9 @@ class User(db.Model):
 
     def __init__(self, email):
         self.email = email
+
+
+ac_plot(app, "/dashing/")
 
 
 @auth.verify_password
