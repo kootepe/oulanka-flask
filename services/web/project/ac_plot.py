@@ -20,7 +20,7 @@ lag_graph_dir = False
 logger = logging.getLogger("defaultLogger")
 
 
-def ac_plot(flask_app, base_name):
+def ac_plot(base_name):
     logger = init_logger()
     ifdb_read_dict, ifdb_push_dict = load_config()
     cycles = load_cycles()
