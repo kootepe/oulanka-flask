@@ -39,7 +39,9 @@ def index():
     return render_template("index.html")
 
 
-ac_plot(app, "/dashing/")
+@app.route("/dashing")
+def render_ac():
+    ac_plot(app, "/dashing/")
 
 
 # @app.route("/snowdepth")
