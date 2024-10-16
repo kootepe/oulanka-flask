@@ -39,7 +39,7 @@ def index():
     return render_template("index.html")
 
 
-@app.server("/dashing")
+@app.route("/dashing")
 @auth.login_required
 def render_ac():
     return ac_plot(app)
