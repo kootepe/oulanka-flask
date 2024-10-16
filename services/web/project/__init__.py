@@ -41,7 +41,7 @@ def index():
 
 @app.route("/dashing")
 def render_ac():
-    ac_plot(app, "/dashing/")
+    return ac_plot(app, "/dashing/")
 
 
 # @app.route("/snowdepth")
