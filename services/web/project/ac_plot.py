@@ -111,7 +111,7 @@ def ac_plot(flask_app):
             slider_vals,
         )
 
-    return app
+    return app.server
 
 
 def load_config():
