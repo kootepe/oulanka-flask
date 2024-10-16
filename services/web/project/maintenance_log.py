@@ -18,7 +18,7 @@ users = temp_users.users
 
 def maintenance_log(flask_app, url):
     app = Dash(__name__, server=flask_app, url_base_pathname=url)
-    auth = dash_auth.BasicAuth(app, users)
+    # auth = dash_auth.BasicAuth(app, users)
     # app = Dash(__name__, server=flask_app, routes_pathname_prefix=url)
     tz = pytz.timezone("Europe/Helsinki")
 
