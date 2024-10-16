@@ -2,9 +2,8 @@ Flask==3.0.3
 flask_sqlalchemy==3.1.1
 gunicorn==23.0.0
 psycopg2-binary==2.9.9
-
-
 dash==2.18.1
+dash_auth==2.3.0
 dash_bootstrap_components==1.6.0
 dash_core_components==2.0.0
 dash_html_components==2.0.0
