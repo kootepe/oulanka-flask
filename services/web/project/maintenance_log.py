@@ -175,6 +175,10 @@ def maintenance_log(flask_app, url):
         maintenance_msg = f"{username} {selected_project} {','.join(selected_instruments)}: {text_content}"
         uuid = mk_uuid()
 
+        if e_dt is not None:
+            grafana_edt = mk_grafana_ts(e_dt)
+        else:
+            grafana_edt = None
         point_data = [
             {
                 "measurement": "log_message",
@@ -183,7 +187,7 @@ def maintenance_log(flask_app, url):
                     "title": selected_project,
                     "project": selected_project,
                     "instruments": ",".join(selected_instruments),
-                    "endTime": mk_grafana_ts(e_dt),
+                    "endTime": grafana_edt,
                     "uuid": uuid,
                 },
                 "tags": {"uuid": uuid, "user": username, "project": selected_project},
@@ -197,7 +201,7 @@ def maintenance_log(flask_app, url):
                     "title": selected_project,
                     "project": selected_project,
                     "instruments": ", ".join(selected_instruments),
-                    "endTime": mk_grafana_ts(e_dt),
+                    "endTime": grafana_edt,
                     "uuid": uuid,
                 },
                 "tags": {"uuid": uuid},
