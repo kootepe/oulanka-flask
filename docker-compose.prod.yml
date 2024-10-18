@@ -21,8 +21,8 @@ services:
   nginx:
     build: ./services/nginx
     volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot/:ro
     ports:
       - 80:80
       - 443:443
@@ -34,9 +34,10 @@ services:
   certbot:
     image: certbot/certbot
     volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    entrypoint: /bin/sh -c 'trap exit TERM; while :; do sleep 6h & wait $${!}; certbot renew; done;'
+      - ./certbot/conf:/etc/letsencrypt/:rw
+      - ./certbot/www:/var/www/certbot/:rw
+    entrypoint: /bin/sh -c
+    command: trap exit TERM; while :; do sleep 6h & wait $${!}; certbot renew && docker-compose restart nginx; done;
 
 volumes:
   postgres_data_prod:

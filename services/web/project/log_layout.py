@@ -124,6 +124,8 @@ def create_layout():
                         id="text-input",
                     ),
                     html.Div(id="text-out"),
+                    # stores text from the textbox so that it doesn't get wiped
+                    # on updates
                     dcc.Store(id="textarea-content-store"),
                 ],
                 style={"width": "600px"},
