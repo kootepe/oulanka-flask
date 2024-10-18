@@ -229,8 +229,8 @@ def maintenance_log(flask_app, url):
 
     def mk_grafana_ts(ts):
         # Finnish time to UTC
-        ts = ts.astimezone(container_tz)
-        nano_ts = int(time.mktime(ts.timetuple())) * 1000
+        utc_ts = ts.astimezone(container_tz)
+        nano_ts = int(time.mktime(utc_ts.timetuple())) * 1000
         return nano_ts
 
     def create_instrument_dropdown(dictionary, id, multi=False):
