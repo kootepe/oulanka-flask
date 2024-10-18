@@ -18,8 +18,11 @@ users = temp_users.users
 
 def maintenance_log(flask_app, url):
     app = Dash(__name__, server=flask_app, url_base_pathname=url)
-    tz = pytz.timezone("Europe/Helsinki")
-    local_tz = "Europe/Helsinki"
+
+    # docker containers are always in UTC
+    container_tz = pytz.timezone("UTC")
+    # We are displaying data to Finnish users
+    local_tz = pytz.timezone("Europe/Helsinki")
 
     # Load projects data from JSON file
     with open("project/projects.json", "r") as f:
@@ -70,10 +73,29 @@ def maintenance_log(flask_app, url):
         State("textarea-content-store", "data"),
     )
     def mk_input(selected, stored_text):
-        now = tz.localize(dt.now()).astimezone(local_tz)
-        date = now.strftime("%Y-%m-%d")
-        time = now.strftime("%H:%M:%S")
-        return date, time
+        display_date, display_ts = utc_string_to_display_tz()
+        return display_date, display_ts
+
+    @app.callback(
+        Output("range-div", "style"),
+        Output("text-date-end", "value"),
+        Output("text-time-end", "value"),
+        Input("is-range", "value"),
+    )
+    def mk_range_div(is_range):
+        if is_range is None:
+            is_range = []
+
+        display_date, display_ts = utc_string_to_display_tz()
+        if len(is_range) > 0:
+            return (
+                {"margin-top": "10px", "margin-bottom": "10px"},
+                display_date,
+                display_ts,
+            )
+
+        else:
+            return {"display": "none"}, "", ""
 
     @app.callback(
         Output("text-out", "children"),
@@ -99,15 +121,30 @@ def maintenance_log(flask_app, url):
         txt_time_end,
     ):
         if submit_clicks:
+            e_dt = None
+
             if not selected_project:
                 return "Select project."
+
             if len(txt_input.strip()) == 0:
                 return "Please enter log message."
+
+            if not txt_dt:
+                return "Please provide date."
+            if not txt_time:
+                return "Please provide time."
+
+            if txt_dt and txt_time:
+                datetime = f"{txt_dt}{txt_time}"
+                s_dt = local_tz.localize(dt.strptime(datetime, "%Y-%m-%d%H:%M:%S"))
+
             if txt_dt_end and txt_time_end:
-                s_dt = dt.strptime(f"{txt_dt}{txt_time}", "%Y-%m-%d%H:%M:%S")
-                e_dt = dt.strptime(f"{txt_dt_end}{txt_time_end}", "%Y-%m-%d%H:%M:%S")
+                datetime = f"{txt_dt_end}{txt_time_end}"
+                e_dt = local_tz.localize(dt.strptime(datetime, "%Y-%m-%d%H:%M:%S"))
+
                 if s_dt > e_dt:
-                    return "Start can't be older than end."
+                    return "Start time can't be later than end time."
+            if e_dt:
                 pt = mk_log_point(
                     txt_input,
                     username,
@@ -116,16 +153,15 @@ def maintenance_log(flask_app, url):
                     s_dt=s_dt,
                     e_dt=e_dt,
                 )
-                # ifdb_push(pt, ifdb_dict)
+                ifdb_push(pt, ifdb_dict)
                 return str(pt)
 
             else:
                 s_dt = dt.strptime(f"{txt_dt}{txt_time}", "%Y-%m-%d%H:%M:%S")
-                # s_dt = tz.localize(s_dt)
                 pt = mk_log_point(
                     txt_input, username, selected_project, selected_instr, s_dt
                 )
-                # ifdb_push(pt ifdb_dict)
+                ifdb_push(pt, ifdb_dict)
                 return str(pt)
 
     def mk_log_point(
@@ -136,12 +172,7 @@ def maintenance_log(flask_app, url):
         s_dt=None,
         e_dt=None,
     ):
-        grafana_edt = None
-        if e_dt is None:
-            maintenance_msg = f"{username} {selected_project} {','.join(selected_instruments)}: {text_content}"
-        if e_dt is not None:
-            grafana_edt = mk_grafana_ts(e_dt)
-            maintenance_msg = f"{username} {selected_project} {','.join(selected_instruments)}: {text_content}"
+        maintenance_msg = f"{username} {selected_project} {','.join(selected_instruments)}: {text_content}"
         uuid = mk_uuid()
 
         point_data = [
@@ -152,11 +183,11 @@ def maintenance_log(flask_app, url):
                     "title": selected_project,
                     "project": selected_project,
                     "instruments": ",".join(selected_instruments),
-                    "endTime": e_dt,
+                    "endTime": mk_grafana_ts(e_dt),
                     "uuid": uuid,
                 },
                 "tags": {"uuid": uuid, "user": username, "project": selected_project},
-                "time": s_dt,
+                "time": e_dt,
                 "timezone": "Europe/Helsinki",
             },
             {
@@ -166,7 +197,7 @@ def maintenance_log(flask_app, url):
                     "title": selected_project,
                     "project": selected_project,
                     "instruments": ", ".join(selected_instruments),
-                    "endTime": grafana_edt,
+                    "endTime": mk_grafana_ts(e_dt),
                     "uuid": uuid,
                 },
                 "tags": {"uuid": uuid},
@@ -193,11 +224,10 @@ def maintenance_log(flask_app, url):
         return col_dd
 
     def mk_grafana_ts(ts):
-        # localized = tz.localize(ts).timetuple()
-        # to_fin_tz = localized.astimezone(local_tz)
-        # ns_ts = int(time.mktime(to_fin_tz)) * 1000
-        ts
-        return ns_ts
+        # Finnish time to UTC
+        ts = ts.astimezone(container_tz)
+        nano_ts = int(time.mktime(ts.timetuple())) * 1000
+        return nano_ts
 
     def create_instrument_dropdown(dictionary, id, multi=False):
         dropdown = dcc.Dropdown(
@@ -215,23 +245,25 @@ def maintenance_log(flask_app, url):
     def mk_uuid():
         return str(uuid.uuid4())[:10]
 
-    @app.callback(
-        Output("range-div", "style"),
-        Output("text-date-end", "value"),
-        Output("text-time-end", "value"),
-        Input("is-range", "value"),
-    )
-    def mk_range_div(is_range):
-        if is_range is None:
-            is_range = []
-        # now = tz.localize(dt.now())
-        display = tz.astimezone("Europe/Helsinki")
-        date = display.strftime("%Y-%m-%d")
-        time = display.strftime("%H:%M:%S")
-        if len(is_range) > 0:
-            return {"margin-top": "10px", "margin-bottom": "10px"}, date, time
-
-        else:
-            return {"display": "none"}, "", ""
-
     return app
+
+
+def utc_string_to_display_tz():
+    now = get_utc_now()
+    date, ts = utc_to_display_tz(now)
+    return date, ts
+
+
+def get_utc_now():
+    container_tz = pytz.timezone("UTC")
+    now = container_tz.localize(dt.now())
+    return now
+
+
+def utc_to_display_tz(ts):
+    local_tz = pytz.timezone("Europe/Helsinki")
+    display_datetime = ts.astimezone(local_tz)
+
+    display_date = display_datetime.strftime("%Y-%m-%d")
+    display_ts = display_datetime.strftime("%H:%M:%S")
+    return display_date, display_ts
